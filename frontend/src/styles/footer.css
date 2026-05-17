@@ -1,9 +1,7 @@
-/* Seção para Artistas */
 .artist-invite {
     background: linear-gradient(135deg, #4a3729 0%, #3a2a1f 100%);
     color: white;
     padding: 60px 0;
-    text-align: center;
     margin-top: 40px;
 }
 
@@ -13,55 +11,28 @@
     margin-bottom: 15px;
 }
 
-.artist-description {
-    font-size: 0.95rem;
-    opacity: 0.95;
-    max-width: 600px;
-    margin: 0 auto 25px;
-    line-height: 1.5;
-}
-
 .btn-artist-cta {
     background: white;
     color: #4a3729;
     border: none;
     padding: 12px 28px;
-    font-size: 0.9rem;
     font-weight: 700;
     border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
     display: inline-flex;
     align-items: center;
     gap: 10px;
 }
 
-.btn-artist-cta:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-/* Footer Principal */
 .main-footer {
     background: #2c1e12;
     color: #D7CCC8;
-    padding: 50px 0 20px;
+    padding-top: 50px;
 }
 
 .footer-logo {
+    color: white;
     font-size: 1.6rem;
     font-weight: 800;
-    color: white;
-    margin-bottom: 12px;
-}
-
-.footer-title {
-    color: white;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 15px;
 }
 
 .footer-links-list {
@@ -72,26 +43,11 @@
 .footer-links-list a {
     color: #D7CCC8;
     text-decoration: none;
-    font-size: 0.8rem;
-    transition: 0.3s;
+    font-size: 0.78rem;
+    opacity: 0.8;
 }
 
 .footer-links-list a:hover {
-    color: white;
-}
-
-.social-links {
-    display: flex;
-    gap: 15px;
-    margin-top: 15px;
-}
-
-.social-icon {
-    color: #D7CCC8;
-    font-size: 1.2rem;
-    transition: 0.3s;
-}
-
-.social-icon:hover {
-    color: white;
+    color: #d4b896;
+    opacity: 1;
 }

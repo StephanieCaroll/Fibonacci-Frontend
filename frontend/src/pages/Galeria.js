@@ -7,11 +7,11 @@ const Galeria = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [filtroCat, setFiltroCat] = useState('todas');
 
-  // Simulação de dados (substituir por fetch/axios para sua API Django)
+  // Simulação de dados 
   useEffect(() => {
     const dadosMock = [
       { id: 1, nome: "A Surpresa", artista: "Watteau", categoria: "pintura", preco: 2800, imagem_url: "https://upload.wikimedia.org/wikipedia/commons/4/40/Jean-Antoine_Watteau_La_Surprise%2C_oil_on_panel.jpg" },
-      // Adicione mais...
+     
     ];
     setObras(dadosMock);
   }, []);

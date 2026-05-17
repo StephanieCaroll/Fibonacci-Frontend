@@ -1,0 +1,56 @@
+.custom-navbar {
+    padding: 1rem 0;
+    background-color: #fff !important;
+    z-index: 1000;
+}
+
+.logo-fibonacci {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: #5D4037 !important;
+    font-size: 1.3rem;
+    text-decoration: none;
+}
+
+.nav-menu {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 2.5rem;
+}
+
+.nav-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #333 !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-decoration: none;
+}
+
+.nav-link:hover {
+    color: #5D4037 !important;
+}
+
+.header-icons {
+    gap: 1.2rem;
+}
+
+.icon-link {
+    color: #333;
+    font-size: 1.1rem;
+    transition: 0.3s;
+}
+
+.bag-count {
+    position: absolute;
+    top: -8px;
+    right: -10px;
+    background: #5D4037;
+    color: white;
+    font-size: 0.6rem;
+    padding: 2px 5px;
+    border-radius: 50%;
+}
