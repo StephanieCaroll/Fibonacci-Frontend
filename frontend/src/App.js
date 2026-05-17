@@ -2,10 +2,12 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import Home from './pages/Home'; 
 import Galeria from './pages/Galeria';
+import Profile from './pages/Profile';
+import Artistas from './pages/Artistas';
+import Cart from './pages/Cart';
 
-// Componentes temporários para teste
-const Home = () => <div className="container mt-5"><h1>Início</h1></div>;
 const Perfil = () => <div className="container mt-5"><h1>Perfil</h1></div>;
 
 function App() {
@@ -16,7 +18,9 @@ function App() {
         <Switch>
           <Route exact path="/" component={Home} />
           <Route path="/galeria" component={Galeria} />
-          <Route path="/perfil" component={Perfil} />
+          <Route path="/perfil" component={Profile} />
+          <Route path="/artistas" component={Artistas} />
+          <Route path="/cart" component={Cart} />
         </Switch>
       </main>
       <Footer />
@@ -24,4 +28,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;

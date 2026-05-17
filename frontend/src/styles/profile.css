@@ -1,0 +1,175 @@
+:root {
+    --text-primary: #1A1A1A;
+    --text-muted: #666666;
+    --accent-color: #5D4037;
+    --border-color: #E5E5E5;
+}
+
+.profile-page {
+    background-color: #fff;
+    min-height: 100vh;
+}
+
+/* Banner Menor e Elegante */
+.profile-banner {
+    width: 100%;
+    height: 220px; /* Altura reduzida para melhor proporção */
+    object-fit: cover;
+    background-color: #f0f0f0;
+    display: block;
+}
+
+.profile-header-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+    position: relative;
+    margin-top: -90px; /* Mantém o avatar centralizado na linha do banner */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* Avatar do Usuário/Artista */
+.profile-avatar {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: 6px solid #fff;
+    object-fit: cover;
+    background-color: #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.profile-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+    letter-spacing: -0.5px;
+}
+
+.profile-location {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.profile-bio {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 650px;
+    margin-bottom: 35px;
+    line-height: 1.7;
+}
+
+/* Botões de Ação */
+.profile-actions {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 50px;
+}
+
+.btn-profile-primary {
+    background-color: var(--text-primary);
+    color: #fff;
+    border: 1px solid var(--text-primary);
+    padding: 12px 35px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-profile-primary:hover {
+    background-color: transparent;
+    color: var(--text-primary);
+}
+
+.btn-profile-secondary {
+    background-color: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 12px 35px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-profile-secondary:hover {
+    border-color: var(--text-primary);
+}
+
+/* Abas (Tabs) de Navegação */
+.profile-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 50px;
+    width: 100%;
+}
+
+.profile-tab {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    padding-bottom: 15px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: 0.3s;
+}
+
+.profile-tab:hover {
+    color: var(--text-primary);
+}
+
+.profile-tab.active {
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--text-primary);
+}
+
+/* Grid de Obras no Perfil */
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+    padding-bottom: 80px;
+    text-align: left;
+}
+
+.profile-art-card {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.profile-art-card img {
+    width: 100%;
+    aspect-ratio: 4/5;
+    object-fit: cover;
+    margin-bottom: 15px;
+    transition: transform 0.4s ease;
+    background-color: #f0f0f0;
+}
+
+.profile-art-card:hover img {
+    transform: translateY(-5px);
+}

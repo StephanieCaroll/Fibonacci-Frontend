@@ -1,0 +1,187 @@
+:root {
+    --text-primary: #1A1A1A;
+    --text-muted: #666666;
+    --accent-color: #5D4037;
+    --bg-accent: #F9F8F6;
+    --border-soft: #E5E5E5;
+}
+
+.artists-page {
+    background-color: #ffffff;
+    min-height: 100vh;
+}
+
+/* Hero Header da Página */
+.artists-hero {
+    padding: 60px 0 40px 0;
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 50px;
+}
+
+.artists-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+.artists-hero p {
+    font-size: 1rem;
+    color: var(--text-muted);
+}
+
+/* Barra de Busca Minimalista */
+.search-artists-box {
+    max-width: 450px;
+    margin-bottom: 50px;
+    position: relative;
+}
+
+.search-artists-box input {
+    width: 100%;
+    padding: 12px 20px 12px 45px;
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.search-artists-box input:focus {
+    border-color: var(--text-primary);
+}
+
+.search-artists-box i {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+/* Grid de Artistas */
+.artists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+    padding-bottom: 80px;
+}
+
+/* Cartão do Artista individual */
+.artist-directory-card {
+    background: #ffffff;
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+}
+
+.artist-directory-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+}
+
+/* Capa em miniatura do cartão */
+.artist-card-banner {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    background-color: var(--bg-accent);
+}
+
+/* Avatar Circular Centralizado sobrepondo a capa */
+.artist-card-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid #ffffff;
+    object-fit: cover;
+    margin-top: -50px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    z-index: 2;
+}
+
+.artist-card-body {
+    padding: 20px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.artist-card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.artist-card-location {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 15px;
+}
+
+.artist-card-bio {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    height: 54px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+/* Ícones de Redes Sociais do Artista */
+.artist-card-socials {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.artist-social-link {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    transition: 0.2s;
+}
+
+.artist-social-link:hover {
+    color: var(--accent-color);
+}
+
+/* Botão de Ver Perfil */
+.btn-artist-profile {
+    width: 100%;
+    padding: 10px 0;
+    border: 1px solid var(--text-primary);
+    background-color: transparent;
+    color: var(--text-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-decoration: none;
+    transition: 0.3s;
+    border-radius: 2px;
+    margin-top: auto;
+}
+
+.btn-artist-profile:hover {
+    background-color: var(--text-primary);
+    color: #ffffff;
+}

@@ -1,90 +1,217 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
+import { Link } from 'react-router-dom';
 import '../styles/galeria.css';
 
-const Galeria = () => {
-  const [obras, setObras] = useState([]);
-  const [busca, setBusca] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [filtroCat, setFiltroCat] = useState('todas');
+function Galeria() {
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showFilters, setShowFilters] = useState(false);
+    
+    // Filtros selecionados (Pills)
+    const [categoryFilter, setCategoryFilter] = useState('todas');
+    const [styleFilter, setStyleFilter] = useState('todos');
+    const [priceFilter, setPriceFilter] = useState(Infinity);
+    const [sortOrder, setSortOrder] = useState('recent');
 
-  // Simulação de dados 
-  useEffect(() => {
-    const dadosMock = [
-      { id: 1, nome: "A Surpresa", artista: "Watteau", categoria: "pintura", preco: 2800, imagem_url: "https://upload.wikimedia.org/wikipedia/commons/4/40/Jean-Antoine_Watteau_La_Surprise%2C_oil_on_panel.jpg" },
-     
-    ];
-    setObras(dadosMock);
-  }, []);
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                // Buscando dados reais do backend
+                const { data } = await axios.get('http://127.0.0.1:8000/fibonacci/products/');
+                setProducts(data.products || []);
+                setLoading(false);
+            } catch (error) {
+                console.error("Erro ao carregar galeria:", error);
+                setLoading(false);
+            }
+        };
+        fetchProducts();
+    }, []);
 
-  const obrasFiltradas = obras.filter(obra => 
-    (obra.nome.toLowerCase().includes(busca.toLowerCase()) || obra.artista.toLowerCase().includes(busca.toLowerCase())) &&
-    (filtroCat === 'todas' || obra.categoria === filtroCat)
-  );
+    // Lógica de Filtragem (Substitui a sua função updateGallery() do Vanilla JS)
+    const filteredProducts = useMemo(() => {
+        let filtered = products.filter(product => {
+            const nome = (product.name || '').toLowerCase();
+            const artista = (product.brand || '').toLowerCase();
+            // Assumimos que o modelo tenha category_name ou usesmos default
+            const categoria = (product.category_name || 'pintura').toLowerCase(); 
+            const preco = parseFloat(product.price || 0);
 
-  return (
-    <div className="galeria-page">
-      <section className="galeria-hero">
-        <div className="galeria-overlay"></div>
-        <div className="hero-content text-center">
-          <h1 className="hero-main-title">Galeria</h1>
-          <p className="hero-subtitle">Explore obras únicas de artistas locais</p>
-        </div>
-      </section>
+            const matchSearch = nome.includes(searchTerm.toLowerCase()) || artista.includes(searchTerm.toLowerCase());
+            const matchCat = categoryFilter === 'todas' || categoria === categoryFilter;
+            // Estilo não existe no modelo original, mas a lógica está pronta se você adicionar
+            const matchEstilo = styleFilter === 'todos' || true; 
+            const matchPrice = preco <= priceFilter;
 
-      <div className="container mt-5">
-        <div className="search-wrapper-inline mb-4">
-          <div className="search-form-clean">
-            <div className="search-input-group">
-              <i className="fas fa-search search-icon"></i>
-              <input 
-                type="text" 
-                placeholder="BUSCAR POR TÍTULO OU PALAVRA-CHAVE..." 
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-              />
-            </div>
-            <button className="btn-filtros-clean" onClick={() => setShowFilters(!showFilters)}>
-              <i className="fas fa-sliders-h"></i> FILTROS
-            </button>
-          </div>
-        </div>
+            return matchSearch && matchCat && matchEstilo && matchPrice;
+        });
 
-        {showFilters && (
-          <div className="filters-panel mb-5 p-4 bg-light border rounded">
-            <h6>CATEGORIA</h6>
-            <div className="pill-group">
-              {['todas', 'pintura', 'desenho', 'fotografia', 'escultura'].map(cat => (
-                <button 
-                  key={cat} 
-                  className={`pill ${filtroCat === cat ? 'active' : ''}`}
-                  onClick={() => setFiltroCat(cat)}
-                >
-                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        // Lógica do select de Ordenação (sortOrder)
+        if (sortOrder === 'price-asc') {
+            filtered.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+        } else if (sortOrder === 'price-desc') {
+            filtered.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+        } else if (sortOrder === 'recent') {
+            // Assumindo que tem data de criação, senao usa o _id
+            filtered.sort((a, b) => b._id - a._id); 
+        }
 
-        <div className="row">
-          {obrasFiltradas.map(obra => (
-            <div key={obra.id} className="col-12 col-sm-6 col-lg-3 mb-4">
-              <div className="card-obra">
-                <span className="badge-categoria">{obra.categoria.toUpperCase()}</span>
-                <img src={obra.imagem_url} className="obra-img" alt={obra.nome} />
-                <div className="pt-3">
-                  <h6 className="font-weight-bold mb-0">{obra.nome.toUpperCase()}</h6>
-                  <small className="text-muted">{obra.artista}</small>
-                  <p className="font-weight-bold">R$ {obra.preco}</p>
-                  <button className="btn btn-outline-dark btn-sm btn-block">Ver Detalhes</button>
+        return filtered;
+    }, [products, searchTerm, categoryFilter, styleFilter, priceFilter, sortOrder]);
+
+    return (
+        <div className="animate-fade-in">
+            {/* Hero da Galeria */}
+            <section className="galeria-hero">
+                <div className="galeria-overlay"></div>
+                <div className="hero-content">
+                    <h1 className="hero-main-title">Galeria</h1>
+                    <p className="hero-subtitle">Explore obras únicas de artistas locais</p>
                 </div>
-              </div>
+            </section>
+
+            <div className="container mt-5 mb-5">
+                <div className="mb-4">
+                    <small className="text-muted text-uppercase" style={{ letterSpacing: '2px' }}>Coleção</small>
+                    <h2 className="font-weight-bold" style={{ fontFamily: 'Playfair Display' }}>Obras da Galeria</h2>
+                </div>
+
+                {/* Barra de Busca Exatamente Igual ao Seu HTML */}
+                <div className="search-wrapper-inline mb-4">
+                    <div className="search-form-clean">
+                        <div className="search-input-group">
+                            <i className="fas fa-search search-icon"></i>
+                            <input 
+                                type="text" 
+                                placeholder="BUSCAR POR TÍTULO OU ARTISTA..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                        
+                        <div className="search-actions">
+                            <button 
+                                type="button" 
+                                className="btn-filtros-clean" 
+                                onClick={() => setShowFilters(!showFilters)}
+                            >
+                                <i className="fas fa-sliders-h"></i> FILTROS
+                            </button>
+                            <button type="button" className="btn-buscar-submit">BUSCAR</button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Painel de Filtros (Mostrado condicionalmente) */}
+                {showFilters && (
+                    <div className="mb-5 filters-panel animate-fade-in">
+                        <div className="filter-grid">
+                            
+                            <div className="filter-col">
+                                <h6>CATEGORIA</h6>
+                                <div className="pill-group">
+                                    {['todas', 'pintura', 'desenho', 'fotografia', 'escultura'].map(cat => (
+                                        <button 
+                                            key={cat}
+                                            className={`pill ${categoryFilter === cat ? 'active' : ''}`}
+                                            onClick={() => setCategoryFilter(cat)}
+                                        >
+                                            {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="filter-col">
+                                <h6>ESTILO / GÊNERO</h6>
+                                <div className="pill-group">
+                                    {['todos', 'barroco', 'romântico', 'moderno', 'contemporâneo'].map(est => (
+                                        <button 
+                                            key={est}
+                                            className={`pill ${styleFilter === est ? 'active' : ''}`}
+                                            onClick={() => setStyleFilter(est)}
+                                        >
+                                            {est.charAt(0).toUpperCase() + est.slice(1)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="filter-col">
+                                <h6>PREÇO</h6>
+                                <div className="pill-group">
+                                    <button className={`pill ${priceFilter === Infinity ? 'active' : ''}`} onClick={() => setPriceFilter(Infinity)}>Todos</button>
+                                    <button className={`pill ${priceFilter === 500 ? 'active' : ''}`} onClick={() => setPriceFilter(500)}>Até R$500</button>
+                                    <button className={`pill ${priceFilter === 1500 ? 'active' : ''}`} onClick={() => setPriceFilter(1500)}>Até R$1.5k</button>
+                                </div>
+                            </div>
+
+                            <div className="filter-col">
+                                <h6>ORDENAR</h6>
+                                <select 
+                                    className="filter-select-mini" 
+                                    value={sortOrder} 
+                                    onChange={(e) => setSortOrder(e.target.value)}
+                                >
+                                    <option value="recent">Mais Recentes</option>
+                                    <option value="price-asc">Menor Preço</option>
+                                    <option value="price-desc">Maior Preço</option>
+                                </select>
+                            </div>
+
+                        </div>
+                    </div>
+                )}
+
+                {/* Grid Dinâmico de Obras */}
+                {loading ? (
+                    <div className="text-center py-5"><h5 className="text-muted">Carregando galeria...</h5></div>
+                ) : filteredProducts.length === 0 ? (
+                    <div className="text-center py-5"><h5 className="text-muted">Nenhuma obra encontrada para esta busca.</h5></div>
+                ) : (
+                    <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+                        {filteredProducts.map((product) => (
+                            <div className="col mb-4 card-item" key={product._id}>
+                                <div className="card-obra">
+                                    <span className="badge-categoria text-uppercase">
+                                        {product.category_name || 'Obra'}
+                                    </span>
+                                    <Link to={`/product/${product._id}`}>
+                                        <img 
+                                            src={`http://127.0.0.1:8000${product.image}`} 
+                                            className="obra-img" 
+                                            alt={product.name} 
+                                        />
+                                    </Link>
+                                    <div className="pt-3">
+                                        <h6 className="mb-0 font-weight-bold text-uppercase nome-obra">
+                                            {product.name}
+                                        </h6>
+                                        <small className="text-muted artista-obra">
+                                            {product.brand || 'Artista Local'}
+                                        </small>
+                                        <br/>
+                                        <Link to={`/product/${product._id}`} className="btn-buy-now">
+                                            Ver Detalhes
+                                        </Link>
+                                        <p className="font-weight-bold mt-2 mb-0" style={{ color: '#5D4037', fontSize: '1.1rem' }}>
+                                            R$ {product.price}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <div className="text-center mt-5">
+                    <button className="btn btn-outline-custom" style={{ padding: '12px 80px' }}>VER MAIS</button>
+                </div>
             </div>
-          ))}
         </div>
-      </div>
-    </div>
-  );
-};
+    );
+}
 
 export default Galeria;
