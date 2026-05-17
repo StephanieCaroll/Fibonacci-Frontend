@@ -1,0 +1,80 @@
+:root {
+    --texto-escuro: #2c2c2c;
+    --btn-borda: #d4c5b5;
+    --hover-color: #5D4037;
+}
+
+.hero-section {
+    padding: 60px 0;
+}
+
+.hero-img {
+    border-radius: 40px;
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    object-fit: cover;
+}
+
+.hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    line-height: 1.2;
+    color: var(--texto-escuro);
+}
+
+.hero-text {
+    font-size: 1rem;
+    color: #666;
+    margin: 20px 0;
+    line-height: 1.6;
+}
+
+.button-group {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-outline-custom {
+    border: 1px solid var(--btn-borda);
+    background: white;
+    color: var(--texto-escuro);
+    padding: 12px 28px;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: 0.3s;
+}
+
+.btn-outline-custom:hover {
+    background-color: var(--hover-color);
+    color: white;
+    border-color: var(--hover-color);
+}
+
+/* Cards de Obras */
+.card-obra {
+    position: relative;
+    transition: transform 0.3s;
+}
+
+.card-obra:hover {
+    transform: translateY(-5px);
+}
+
+.obra-img {
+    border-radius: 15px;
+    height: 280px;
+    width: 100%;
+    object-fit: cover;
+}
+
+.badge-categoria {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 5px 12px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    border-radius: 20px;
+}
