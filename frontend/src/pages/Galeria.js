@@ -25,6 +25,7 @@ function Galeria() {
                 } : {};
 
                 const { data } = await axios.get('http://127.0.0.1:8000/fibonacci/products/', config);
+                // Ajuste para lidar com diferentes formatos de resposta da API
                 const productsData = data.products ? data.products : data;
                 setProducts(Array.isArray(productsData) ? productsData : []);
                 setLoading(false);
@@ -35,6 +36,10 @@ function Galeria() {
         };
         fetchProducts();
     }, []);
+
+    const handleCardClick = (id) => {
+        history.push(`/product/${id}`);
+    };
 
     const filteredProducts = useMemo(() => {
         return products.filter(product => {
@@ -72,7 +77,12 @@ function Galeria() {
                     <div className="search-form-clean">
                         <div className="search-input-group">
                             <i className="fas fa-search search-icon"></i>
-                            <input type="text" placeholder="BUSCAR POR TÍTULO OU ARTISTA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                            <input 
+                                type="text" 
+                                placeholder="BUSCAR POR TÍTULO OU ARTISTA..." 
+                                value={searchTerm} 
+                                onChange={(e) => setSearchTerm(e.target.value)} 
+                            />
                         </div>
                         <div className="search-actions">
                             <button type="button" className="btn-filtros-clean" onClick={() => setShowFilters(!showFilters)}>
@@ -133,23 +143,31 @@ function Galeria() {
                 ) : (
                     <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
                         {filteredProducts.map((product) => (
-                            <div className="col mb-4 card-item" key={product.id || product._id}>
-                                <div className="card-obra">
-                                   
+                            <div className="col mb-4" key={product.id || product._id}>
+                                <div 
+                                    className="card-obra" 
+                                    onClick={() => handleCardClick(product.id || product._id)}
+                                    style={{ cursor: 'pointer' }}
+                                >
                                     <span className="badge-categoria text-uppercase">
                                         {product.category_name || 'Arte'}
                                     </span>
-                                    <Link to={`/product/${product.id || product._id}`}>
+                                    
+                                    <div className="img-container">
                                         <img 
                                             src={product.image.startsWith('http') ? product.image : `http://127.0.0.1:8000${product.image}`} 
                                             className="obra-img" 
                                             alt={product.name} 
                                         />
-                                    </Link>
+                                    </div>
+
                                     <div className="pt-3">
                                         <h6 className="mb-0 font-weight-bold text-uppercase nome-obra">{product.name}</h6>
                                         <small className="text-muted artista-obra">{product.brand}</small>
-                                        <p className="font-weight-bold mt-2 mb-0" style={{ color: '#1A1A1A', fontSize: '1.1rem' }}>R$ {product.price}</p>
+                                        <div className="d-flex justify-content-between align-items-center mt-2">
+                                            <p className="font-weight-bold mb-0 price-text">R$ {product.price}</p>
+                                            <span className="ver-detalhes-link">Ver detalhes</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

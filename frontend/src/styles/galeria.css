@@ -1,4 +1,4 @@
-/* Hero Section da Galeria */
+
 .galeria-hero {
     position: relative;
     background: url('https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=2000') no-repeat center center;
@@ -43,7 +43,6 @@
     margin-top: 10px;
 }
 
-/* Barra de Busca e Filtros */
 .search-form-clean {
     display: flex; 
     background: white; 
@@ -119,7 +118,6 @@
     background: #3e2b25;
 }
 
-/* Painel de Filtros Dropdown */
 .filters-panel {
     background: #fdf9f3;
     border: 1px solid #d4c5b5;
@@ -181,7 +179,6 @@
     outline: none;
 }
 
-/* Cards de Obras */
 .card-obra { 
     border: none; 
     background: transparent; 
@@ -241,7 +238,6 @@
     color: white;
 }
 
-/* Botão Carregar Mais */
 .btn-outline-custom {
     border: 1px solid #2c2c2c;
     background: transparent;
@@ -257,7 +253,6 @@
     color: white;
 }
 
-/* Responsividade Mobile */
 @media (max-width: 768px) {
     .search-form-clean { 
         flex-direction: column; 

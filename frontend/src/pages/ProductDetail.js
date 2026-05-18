@@ -1,78 +1,317 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useHistory, Link } from 'react-router-dom';
 import axios from 'axios';
-import '../styles/home.css'; // Reutilizando base elegante
+import { useParams, useHistory } from 'react-router-dom';
+import '../styles/productDetail.css';
 
 function ProductDetail() {
     const { id } = useParams();
     const history = useHistory();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [imageError, setImageError] = useState(false);
+    const [quantity, setQuantity] = useState(1);
+    const [reviews, setReviews] = useState([]);
+    const [averageRating, setAverageRating] = useState(0);
 
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const { data } = await axios.get(`http://127.0.0.1:8000/fibonacci/products/${id}/`);
+                const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+                const config = userInfo ? {
+                    headers: { Authorization: `Bearer ${userInfo.access || userInfo.token}` }
+                } : {};
+
+                const { data } = await axios.get(`http://127.0.0.1:8000/fibonacci/products/${id}/`, config);
+                
+                console.log('Dados do produto:', data); 
+                
                 setProduct(data);
+                
+                if (data.reviews && data.reviews.length > 0) {
+                    setReviews(data.reviews);
+                    const avg = data.reviews.reduce((sum, review) => sum + review.rating, 0) / data.reviews.length;
+                    setAverageRating(avg);
+                }
+                
                 setLoading(false);
-            } catch (error) {
-                console.error("Erro ao carregar produto:", error);
+            } catch (err) {
+                console.error("Erro na API:", err);
                 setLoading(false);
             }
         };
         fetchProduct();
     }, [id]);
 
-    const handleBuyNow = () => {
-        const userInfo = localStorage.getItem('userInfo');
-        if (!userInfo) {
-            
-            history.push(`/login?redirect=product/${id}`);
-        } else {
-            
-            history.push('/cart');
+    const handleQuantityChange = (delta) => {
+       
+        const stock = product.countInstock || product.stock || 0;
+        const newQuantity = quantity + delta;
+        if (newQuantity >= 1 && newQuantity <= stock) {
+            setQuantity(newQuantity);
         }
     };
 
-    if (loading) return <div className="container mt-5">Carregando obra...</div>;
-    if (!product) return <div className="container mt-5">Obra não encontrada.</div>;
+    const handleAddToCart = () => {
+        const stock = product.countInstock || product.stock || 0;
+        if (stock === 0) {
+            alert('Produto esgotado!');
+            return;
+        }
+        console.log(`Adicionando ${quantity} x ${product?.name}`);
+    };
+
+    const getStockStatus = () => {
+      
+        const stock = product.countInstock || product.stock || 0;
+        
+        if (stock === 0) {
+            return { text: 'ESGOTADO', class: 'out-of-stock', color: '#E74C3C' };
+        } else if (stock <= 5) {
+            return { text: 'ESTOQUE BAIXO', class: 'low-stock', color: '#F39C12' };
+        } else {
+            return { text: 'EM ESTOQUE', class: 'in-stock', color: '#27AE60' };
+        }
+    };
+
+    if (loading) return (
+        <div className="product-detail-container">
+            <div className="loading-spinner">
+                <div className="spinner"></div>
+                <p>Despertando a obra...</p>
+            </div>
+        </div>
+    );
+    
+    if (!product) return (
+        <div className="product-detail-container">
+            <div className="error-message">
+                <p>Obra não encontrada no acervo.</p>
+                <button onClick={() => history.push('/galeria')} className="btn-back">
+                    ← Voltar à Coleção
+                </button>
+            </div>
+        </div>
+    );
+
+    const stockQuantity = product.countInstock || product.stock || 0;
+    const isOutOfStock = stockQuantity === 0;
+
+    const imageUrl = product.image && product.image.startsWith('http') 
+        ? product.image 
+        : product.image 
+            ? `http://127.0.0.1:8000${product.image}`
+            : '/api/placeholder/600/800';
+
+    const renderStars = (rating) => {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+        
+        return (
+            <>
+                {'★'.repeat(fullStars)}
+                {hasHalfStar && '½'}
+                {'☆'.repeat(emptyStars)}
+            </>
+        );
+    };
+
+    const stockStatus = getStockStatus();
 
     return (
-        <div className="container mt-5 pt-5 animate-fade-in">
-            <div className="row">
-                <div className="col-md-6">
-                    <img 
-                        src={`http://127.0.0.1:8000${product.image}`} 
-                        alt={product.name} 
-                        className="img-fluid shadow-sm"
-                        style={{ borderRadius: '4px', width: '100%', maxHeight: '600px', objectFit: 'cover' }}
-                    />
+        <div className="product-detail-container animate-fade-in">
+            <button onClick={() => history.push('/galeria')} className="btn-back">
+                ← Voltar à Coleção
+            </button>
+
+            <div className="product-layout">
+                <div className="product-image-section">
+                    <div className="product-image-wrapper">
+                        {!imageError ? (
+                            <img 
+                                src={imageUrl} 
+                                alt={product.name}
+                                onError={() => setImageError(true)}
+                                loading="lazy"
+                            />
+                        ) : (
+                            <div className="image-placeholder">
+                                <span>🎨</span>
+                                <p>Imagem em curadoria</p>
+                            </div>
+                        )}
+                        <div className="image-badge">
+                            <span>Original</span>
+                        </div>
+                        {stockQuantity <= 5 && stockQuantity > 0 && (
+                            <div className="stock-badge-image">
+                                <span>Últimas {stockQuantity} unidades!</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
-                <div className="col-md-6 pl-md-5 mt-4 mt-md-0">
-                    <small className="text-muted text-uppercase letter-spacing-2">{product.category_name || 'Obra Única'}</small>
-                    <h1 className="display-4 font-weight-bold mb-3" style={{ fontFamily: 'Playfair Display' }}>{product.name}</h1>
-                    <p className="h4 mb-4 text-sepia" style={{ color: '#5D4037' }}>R$ {product.price}</p>
+
+                <div className="product-info-section">
+                    <div className="product-category-tag">
+                        {product.category_name || "Original Fibonacci"}
+                    </div>
                     
-                    <div className="border-top border-bottom py-4 mb-4">
-                        <p className="text-muted mb-1">Artista</p>
-                        <p className="font-weight-bold h5">{product.brand || 'Artista Local'}</p>
+                    <h1 className="product-name">{product.name}</h1>
+                    
+                    <div className="product-author">
+                        <span className="author-label">Criação de</span>
+                        <strong>{product.brand || "Artista Local"}</strong>
                     </div>
 
-                    <p className="text-muted mb-5" style={{ lineHeight: '1.8' }}>
-                        {product.description || 'Esta obra exclusiva representa a essência da arte local produzida com técnicas tradicionais e visão contemporânea.'}
-                    </p>
+                    <div className="product-stock">
+                        <div className={`stock-card ${stockStatus.class}`}>
+                            <div className="stock-header">
+                                <span className="stock-icon">
+                                    {stockQuantity === 0 ? '❌' : '✓'}
+                                </span>
+                                <span className="stock-status-text">{stockStatus.text}</span>
+                            </div>
+                            
+                            <div className="stock-quantity-display">
+                                <span className="stock-number">{stockQuantity}</span>
+                                <span className="stock-label">
+                                    {stockQuantity === 1 ? 'unidade disponível' : 'unidades disponíveis'}
+                                </span>
+                            </div>
+                            
+                            {stockQuantity > 0 && stockQuantity <= 10 && (
+                                <div className="stock-warning-message">
+                                    ⚡ Apenas {stockQuantity} {stockQuantity === 1 ? 'unidade' : 'unidades'} em estoque! Não perca essa oportunidade.
+                                </div>
+                            )}
+                            
+                            {stockQuantity === 0 && (
+                                <div className="stock-soldout-message">
+                                    🔴 Produto esgotado. Volte em breve!
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
-                    <div className="d-grid gap-2">
+                    <div className="product-rating">
+                        <div className="stars">
+                            {renderStars(averageRating)}
+                        </div>
+                        <span className="rating-text">
+                            {averageRating > 0 ? averageRating.toFixed(1) : '0.0'} 
+                            {reviews.length > 0 && ` (${reviews.length} ${reviews.length === 1 ? 'avaliação' : 'avaliações'})`}
+                            {reviews.length === 0 && ' (Sem avaliações ainda)'}
+                        </span>
+                    </div>
+
+                    {reviews.length > 0 && (
+                        <div className="reviews-summary">
+                            {reviews.slice(0, 2).map((review, index) => (
+                                <div key={index} className="review-item">
+                                    <div className="review-header">
+                                        <span className="review-author">{review.user_name || 'Comprador'}</span>
+                                        <div className="review-stars">{renderStars(review.rating)}</div>
+                                    </div>
+                                    <p className="review-comment">{review.comment || 'Excelente obra, recomendo!'}</p>
+                                </div>
+                            ))}
+                            {reviews.length > 2 && (
+                                <button className="view-all-reviews">
+                                    Ver todas as {reviews.length} avaliações
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="product-price-box">
+                        <span className="price-label">Preço</span>
+                        <div className="price-value">
+                            {Number(product.price).toLocaleString('pt-BR', { 
+                                style: 'currency', 
+                                currency: 'BRL' 
+                            })}
+                        </div>
+                        <div className="price-installments">
+                            ou em até 12x de {(Number(product.price) / 12).toLocaleString('pt-BR', { 
+                                style: 'currency', 
+                                currency: 'BRL' 
+                            })} sem juros
+                        </div>
+                    </div>
+
+                    <div className="product-description-section">
+                        <h3>Sobre a obra</h3>
+                        <p>{product.description || "Esta peça única representa a convergência entre a matemática sagrada de Fibonacci e a expressão artística contemporânea. Cada detalhe foi cuidadosamente elaborado para proporcionar uma experiência estética singular."}</p>
+                    </div>
+
+                    {!isOutOfStock && (
+                        <div className="quantity-selector">
+                            <label>Quantidade</label>
+                            <div className="quantity-controls">
+                                <button 
+                                    onClick={() => handleQuantityChange(-1)} 
+                                    disabled={quantity <= 1}
+                                    className="quantity-btn"
+                                >
+                                    −
+                                </button>
+                                <span className="quantity-value">{quantity}</span>
+                                <button 
+                                    onClick={() => handleQuantityChange(1)} 
+                                    disabled={quantity >= stockQuantity}
+                                    className="quantity-btn"
+                                >
+                                    +
+                                </button>
+                            </div>
+                            <div className="stock-info-text">
+                                Máximo de {stockQuantity} unidades por compra
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="action-buttons">
                         <button 
-                            onClick={handleBuyNow}
-                            className="btn-fibonacci py-3 text-uppercase font-weight-bold"
-                            style={{ background: '#1A1A1A', color: '#fff', border: 'none', letterSpacing: '2px' }}
+                            onClick={handleAddToCart} 
+                            className={`btn-add-to-cart ${isOutOfStock ? 'disabled' : ''}`}
+                            disabled={isOutOfStock}
                         >
-                            Comprar Agora
+                            {isOutOfStock ? 'ESGOTADO' : 'Adicionar à Coleção'}
                         </button>
-                        <Link to="/galeria" className="text-center mt-3 text-dark text-decoration-none small font-weight-bold">
-                            ← VOLTAR PARA A GALERIA
-                        </Link>
+                        {!isOutOfStock && (
+                            <button className="btn-wishlist">
+                                ♡ Favoritar
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="extra-info">
+                        <div className="info-item">
+                            <span>✓</span>
+                            <p>Certificado de Autenticidade Assinado</p>
+                        </div>
+                        <div className="info-item">
+                            <span>✓</span>
+                            <p>Frete grátis para todo Brasil</p>
+                        </div>
+                        <div className="info-item">
+                            <span>✓</span>
+                            <p>Garantia de 30 dias</p>
+                        </div>
+                        <div className="info-item">
+                            <span>📦</span>
+                            <p>Estoque atual: {stockQuantity} {stockQuantity === 1 ? 'unidade' : 'unidades'}</p>
+                        </div>
+                    </div>
+
+                    <div className="share-section">
+                        <p>Compartilhar:</p>
+                        <div className="social-icons">
+                            <span>📱</span>
+                            <span>📘</span>
+                            <span>📸</span>
+                            <span>🐦</span>
+                        </div>
                     </div>
                 </div>
             </div>
