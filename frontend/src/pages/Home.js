@@ -51,9 +51,17 @@ function Home() {
     };
 
     const getCategoryDisplay = (product) => {
-        const cat = product.category_name || product.category;
-        if (!cat) return 'Arte';
+        if (!product) return 'Arte';
         
+        let cat = 'Arte';
+        if (product.category_name) {
+            cat = product.category_name;
+        } else if (product.category && typeof product.category === 'object' && product.category.name) {
+            cat = product.category.name;
+        } else if (typeof product.category === 'string' && isNaN(Number(product.category))) {
+            cat = product.category;
+        }
+
         const catString = String(cat);
         if (catString.toLowerCase() === 'digital') return 'Arte Digital';
         return catString;

@@ -46,6 +46,39 @@ function ProductDetail() {
         fetchProduct();
     }, [id]);
 
+    const getCategoryDisplay = (product) => {
+        if (!product) return 'Arte';
+        
+        let cat = '';
+        
+        if (product.category_name && product.category_name !== 'Arte') {
+            cat = product.category_name;
+        } else if (product.category && typeof product.category === 'object' && product.category.name) {
+            cat = product.category.name;
+        } else if (product.category && typeof product.category === 'string' && isNaN(Number(product.category))) {
+            cat = product.category;
+        }
+
+        if (!cat) return 'Arte';
+
+        const catString = String(cat);
+        if (catString.toLowerCase() === 'digital') return 'Arte Digital';
+        
+        return catString.charAt(0).toUpperCase() + catString.slice(1);
+    };
+
+    const getGenreDisplay = (desc) => {
+        if (!desc) return 'Arte Exclusiva';
+        
+        const match = desc.match(/Gênero:\s*([^.]+)/i);
+        if (match && match[1]) {
+            const genre = match[1].trim();
+            return genre.charAt(0).toUpperCase() + genre.slice(1);
+        }
+        
+        return 'Arte Exclusiva'; 
+    };
+
     const stockQuantity = product?.countInstock || 0;
     const isOutOfStock = stockQuantity === 0;
     
@@ -200,7 +233,7 @@ function ProductDetail() {
                             </div>
                         )}
                         <div className="image-badge">
-                            <span>Original</span>
+                            <span>{getCategoryDisplay(product)}</span>
                         </div>
                         {isOutOfStock && <div className="sold-out-overlay">VENDIDO</div>}
                     </div>
@@ -208,7 +241,7 @@ function ProductDetail() {
 
                 <div className="product-info-section">
                     <div className="product-category-tag">
-                        {product.category_name || "Original Fibonacci"}
+                        {getGenreDisplay(product.description)}
                     </div>
                     
                     <h1 className="product-name">{product.name}</h1>
