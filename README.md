@@ -9,7 +9,7 @@
 ![MUI](https://img.shields.io/badge/MUI-%230081CB.svg?style=for-the-badge&logo=mui&logoColor=white)
 ![Bootstrap](https://img.shields.io/badge/bootstrap-%238511FA.svg?style=for-the-badge&logo=bootstrap&logoColor=white)
 
-<img src="./public/image.png" width="1200" alt="Demonstração da Galeria Fibonacci">
+<img src="frontend/public/image.png" width="1200" alt="Demonstração da Galeria Fibonacci">
 
 > O **Fibonacci** é uma plataforma web desenvolvida com **React** que conecta artistas locais e amantes da arte, oferecendo uma interface interativa e responsiva para exposição, descoberta e gerenciamento de obras únicas.
 
