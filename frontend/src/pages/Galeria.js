@@ -36,8 +36,7 @@ function Galeria() {
         fetchProducts();
     }, []);
 
-    const handleCardClick = (id, isOutOfStock) => {
-        if (isOutOfStock) return;
+    const handleCardClick = (id) => {
         history.push(`/product/${id}`);
     };
 
@@ -58,17 +57,27 @@ function Galeria() {
         return catString;
     };
 
+    const getGenreFromDesc = (desc) => {
+        if (!desc) return '';
+        const match = desc.match(/Gênero:\s*([^.]+)/i);
+        if (match && match[1]) {
+            return match[1].trim().toLowerCase();
+        }
+        return '';
+    };
+
     const filteredProducts = useMemo(() => {
         return products.filter(product => {
             const nome = (product.name || '').toLowerCase();
             const artista = (product.brand || '').toLowerCase();
             const categoria = (product.category_name || '').toLowerCase(); 
-            const descricao = (product.description || '').toLowerCase();
             const preco = parseFloat(product.price || 0);
+            
+            const generoExato = getGenreFromDesc(product.description);
 
             const matchSearch = nome.includes(searchTerm.toLowerCase()) || artista.includes(searchTerm.toLowerCase());
             const matchCat = categoryFilter === 'todas' || categoria === categoryFilter;
-            const matchEstilo = styleFilter === 'todos' || descricao.includes(styleFilter.toLowerCase()); 
+            const matchEstilo = styleFilter === 'todos' || generoExato === styleFilter.toLowerCase(); 
             const matchPrice = preco <= priceFilter;
 
             return matchSearch && matchCat && matchEstilo && matchPrice;
@@ -166,9 +175,9 @@ function Galeria() {
                                 <div className="col mb-4" key={product.id || product._id}>
                                     <div 
                                         className={`card-obra ${isOutOfStock ? 'esgotado' : ''}`} 
-                                        onClick={() => handleCardClick(product.id || product._id, isOutOfStock)}
+                                        onClick={() => handleCardClick(product.id || product._id)}
                                         style={{ 
-                                            cursor: isOutOfStock ? 'default' : 'pointer',
+                                            cursor: 'pointer', 
                                             filter: isOutOfStock ? 'grayscale(100%)' : 'none',
                                             opacity: isOutOfStock ? 0.7 : 1,
                                             transition: 'all 0.3s ease'
