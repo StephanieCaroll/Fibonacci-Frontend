@@ -2,13 +2,12 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import Home from './pages/Home'; 
+import Home from './pages/Home';
 import Galeria from './pages/Galeria';
 import Profile from './pages/Profile';
 import Artistas from './pages/Artistas';
 import Cart from './pages/Cart';
-
-const Perfil = () => <div className="container mt-5"><h1>Perfil</h1></div>;
+import AddArtwork from './pages/AddArtwork';
 
 function App() {
   return (
@@ -21,6 +20,7 @@ function App() {
           <Route path="/perfil" component={Profile} />
           <Route path="/artistas" component={Artistas} />
           <Route path="/cart" component={Cart} />
+          <Route path="/adicionar-obra" component={AddArtwork} />
         </Switch>
       </main>
       <Footer />
