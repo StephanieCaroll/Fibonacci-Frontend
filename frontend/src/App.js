@@ -8,6 +8,9 @@ import Profile from './pages/Profile';
 import Artistas from './pages/Artistas';
 import Cart from './pages/Cart';
 import AddArtwork from './pages/AddArtwork';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ProductDetail from './pages/ProductDetail';
 
 function App() {
   return (
@@ -21,6 +24,9 @@ function App() {
           <Route path="/artistas" component={Artistas} />
           <Route path="/cart" component={Cart} />
           <Route path="/adicionar-obra" component={AddArtwork} />
+          <Route path="/login" component={Login} />
+          <Route path="/cadastro" component={Register} />
+          <Route path="/product/:id" component={ProductDetail} />
         </Switch>
       </main>
       <Footer />

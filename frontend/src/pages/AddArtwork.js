@@ -23,7 +23,7 @@ function AddArtwork() {
         }
     };
 
-    const submitHandler = async (e) => {
+ const submitHandler = async (e) => {
         e.preventDefault();
 
         const formData = new FormData();
@@ -38,9 +38,20 @@ function AddArtwork() {
         }
 
         try {
+            // Pega o crachá (token) do usuário logado
+            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+
+            if (!userInfo) {
+                alert("Você precisa estar logado para cadastrar uma obra.");
+                history.push('/login');
+                return;
+            }
+
+            // Envia o arquivo e o Token JWT para autorização
             const config = {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${userInfo.token || userInfo.access}` 
                 }
             };
 

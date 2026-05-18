@@ -2,6 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 function Header() {
+    // Checa se existe alguém logado
+    const userInfo = localStorage.getItem('userInfo');
+
     return (
         <nav className="navbar navbar-expand-lg bg-white py-4 border-bottom sticky-top">
             <div className="container">
@@ -23,12 +26,11 @@ function Header() {
                 </div>
 
                 <div className="d-flex align-items-center" style={{ gap: '20px' }}>
-                    
                     <Link to="/galeria" className="text-dark">
                         <i className="fas fa-search cursor-pointer"></i>
                     </Link>
                     
-                    <Link to="/perfil" className="text-dark">
+                    <Link to={userInfo ? "/perfil" : "/login"} className="text-dark">
                         <i className="far fa-user"></i>
                     </Link>
                     

@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import '../styles/galeria.css';
 
 function Galeria() {
+    const history = useHistory();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     
-    // Filtros selecionados (Pills)
     const [categoryFilter, setCategoryFilter] = useState('todas');
     const [styleFilter, setStyleFilter] = useState('todos');
     const [priceFilter, setPriceFilter] = useState(Infinity);
@@ -18,8 +19,9 @@ function Galeria() {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                // Buscando dados reais do backend
+                
                 const { data } = await axios.get('http://127.0.0.1:8000/fibonacci/products/');
+                
                 setProducts(data.products || []);
                 setLoading(false);
             } catch (error) {
@@ -30,31 +32,40 @@ function Galeria() {
         fetchProducts();
     }, []);
 
-    // Lógica de Filtragem (Substitui a sua função updateGallery() do Vanilla JS)
+    const handleBuyClick = (e, productId) => {
+        e.preventDefault();
+        const userInfo = localStorage.getItem('userInfo');
+        
+        if (userInfo) {
+          
+            history.push(`/product/${productId}`); 
+        } else {
+           
+            history.push(`/login?redirect=product/${productId}`);
+        }
+    };
+
     const filteredProducts = useMemo(() => {
         let filtered = products.filter(product => {
             const nome = (product.name || '').toLowerCase();
             const artista = (product.brand || '').toLowerCase();
-            // Assumimos que o modelo tenha category_name ou usesmos default
             const categoria = (product.category_name || 'pintura').toLowerCase(); 
             const preco = parseFloat(product.price || 0);
 
             const matchSearch = nome.includes(searchTerm.toLowerCase()) || artista.includes(searchTerm.toLowerCase());
             const matchCat = categoryFilter === 'todas' || categoria === categoryFilter;
-            // Estilo não existe no modelo original, mas a lógica está pronta se você adicionar
             const matchEstilo = styleFilter === 'todos' || true; 
             const matchPrice = preco <= priceFilter;
 
             return matchSearch && matchCat && matchEstilo && matchPrice;
         });
 
-        // Lógica do select de Ordenação (sortOrder)
+        // Lógica de Ordenação
         if (sortOrder === 'price-asc') {
             filtered.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
         } else if (sortOrder === 'price-desc') {
             filtered.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
         } else if (sortOrder === 'recent') {
-            // Assumindo que tem data de criação, senao usa o _id
             filtered.sort((a, b) => b._id - a._id); 
         }
 
@@ -63,7 +74,7 @@ function Galeria() {
 
     return (
         <div className="animate-fade-in">
-            {/* Hero da Galeria */}
+           
             <section className="galeria-hero">
                 <div className="galeria-overlay"></div>
                 <div className="hero-content">
@@ -78,7 +89,6 @@ function Galeria() {
                     <h2 className="font-weight-bold" style={{ fontFamily: 'Playfair Display' }}>Obras da Galeria</h2>
                 </div>
 
-                {/* Barra de Busca Exatamente Igual ao Seu HTML */}
                 <div className="search-wrapper-inline mb-4">
                     <div className="search-form-clean">
                         <div className="search-input-group">
@@ -104,7 +114,6 @@ function Galeria() {
                     </div>
                 </div>
 
-                {/* Painel de Filtros (Mostrado condicionalmente) */}
                 {showFilters && (
                     <div className="mb-5 filters-panel animate-fade-in">
                         <div className="filter-grid">
@@ -165,7 +174,7 @@ function Galeria() {
                     </div>
                 )}
 
-                {/* Grid Dinâmico de Obras */}
+              
                 {loading ? (
                     <div className="text-center py-5"><h5 className="text-muted">Carregando galeria...</h5></div>
                 ) : filteredProducts.length === 0 ? (
@@ -193,9 +202,14 @@ function Galeria() {
                                             {product.brand || 'Artista Local'}
                                         </small>
                                         <br/>
-                                        <Link to={`/product/${product._id}`} className="btn-buy-now">
-                                            Ver Detalhes
-                                        </Link>
+                                       
+                                        <button 
+                                            onClick={(e) => handleBuyClick(e, product._id)} 
+                                            className="btn-buy-now"
+                                            style={{ background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
+                                        >
+                                            Comprar Agora
+                                        </button>
                                         <p className="font-weight-bold mt-2 mb-0" style={{ color: '#5D4037', fontSize: '1.1rem' }}>
                                             R$ {product.price}
                                         </p>
