@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, Link } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/profile.css';
 
@@ -22,7 +22,7 @@ function Profile() {
     const [tempBanner, setTempBanner] = useState(null);
 
     useEffect(() => {
-        // Busca países
+       
         axios.get('https://restcountries.com/v3.1/all?fields=name,translations')
             .then(res => {
                 const list = res.data.map(c => c.translations.por.common).sort();
@@ -78,7 +78,6 @@ function Profile() {
         }
     };
 
-    // Imagens artísticas baseadas no ID do usuário
     const getArtAvatar = () => {
         const id = userInfo?.id || "default";
         if (tempAvatar) return tempAvatar;
@@ -124,11 +123,6 @@ function Profile() {
                 formData.append('banner', fileInputBanner.current.files[0]);
             }
             
-            console.log("Enviando dados:");
-            for (let pair of formData.entries()) {
-                console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]));
-            }
-            
             const config = {
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -141,8 +135,6 @@ function Profile() {
                 formData,
                 config
             );
-            
-            console.log("Resposta do servidor:", data);
             
             const updatedUser = { ...data, token: token };
             setUserInfo(updatedUser);
@@ -166,7 +158,6 @@ function Profile() {
             
         } catch (error) {
             console.error("Erro ao salvar perfil:", error);
-            console.error("Detalhes do erro:", error.response?.data);
             alert(`Erro ao salvar alterações: ${error.response?.data?.detail || error.message}`);
         } finally {
             setLoading(false);
@@ -260,6 +251,11 @@ function Profile() {
                     ) : (
                         <>
                             <button className="btn-profile-primary" onClick={() => setIsEditing(true)}>Editar Perfil</button>
+                            
+                            <Link to="/adicionar-obra" className="btn-add-artwork-profile" title="Adicionar nova obra">
+                                <span className="plus-icon">+</span> Adicionar Obra
+                            </Link>
+
                             <button className="btn-logout-minimal" onClick={() => { localStorage.removeItem('userInfo'); history.push('/login'); }}>Sair</button>
                         </>
                     )}
