@@ -11,6 +11,7 @@ import AddArtwork from './pages/AddArtwork';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ProductDetail from './pages/ProductDetail';
+import ArtistProfile from './pages/ArtistProfile';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/login" component={Login} />
           <Route path="/cadastro" component={Register} />
           <Route path="/product/:id" component={ProductDetail} />
+          <Route path="/artista/:id" component={ArtistProfile} />
         </Switch>
       </main>
       <Footer />

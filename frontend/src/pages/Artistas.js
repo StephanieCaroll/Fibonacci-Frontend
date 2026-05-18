@@ -12,12 +12,7 @@ function Artistas() {
     useEffect(() => {
         const fetchArtists = async () => {
             try {
-                console.log("Buscando artistas do backend...");
-                
                 const { data } = await axios.get('http://127.0.0.1:8000/fibonacci/users/artists/');
-                
-                console.log("Artistas carregados:", data);
-                console.log("Quantidade de artistas:", data.length);
                 
                 const formattedArtists = data.map(artist => ({
                     id: artist.id,
@@ -26,7 +21,7 @@ function Artistas() {
                     last_name: artist.last_name || '',
                     profile: {
                         location: artist.profile?.location || 'Local não informado',
-                        bio: artist.profile?.bio || 'Artista da comunidade Fibonacci',
+                        bio: artist.profile?.bio || 'Artista da comunidade Fibonacci.',
                         banner_image: artist.profile?.banner_image || null,
                         profile_image: artist.profile?.profile_image || null,
                         instagram: artist.profile?.instagram || null,
@@ -39,11 +34,7 @@ function Artistas() {
                 setLoading(false);
                 
             } catch (error) {
-                console.error("Erro ao carregar lista de artistas:", error);
-                console.error("Status do erro:", error.response?.status);
-                console.error("Mensagem:", error.response?.data);
-                
-                setError(error.response?.data?.detail || "Erro ao carregar artistas");
+                setError(error.response?.data?.detail || "Erro ao carregar o catálogo de artistas.");
                 setLoading(false);
             }
         };
@@ -63,124 +54,99 @@ function Artistas() {
     });
 
     return (
-        <div className="artists-page animate-fade-in">
+        <div className="artists-page">
             <div className="artists-container">
+                
                 <header className="artists-hero">
-                    <h1>Artistas da Comunidade</h1>
-                    <p>Conheça os criadores locais e explore suas visões e identidades artísticas únicas.</p>
+                  
+                    <h1 className="hero-title">Nossos Artistas</h1>
+                 
+                    <p className="hero-subtitle">
+                        Explore mentes criativas e descubra novas perspectivas visuais.
+                    </p>
+                    
+                    <div className="search-bar-wrapper">
+                        <i className="fas fa-search search-icon"></i>
+                        <input 
+                            type="text" 
+                            className="search-input"
+                            placeholder="Buscar por nome, usuário ou cidade..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                 </header>
 
-                <div className="search-artists-box">
-                    <i className="fas fa-search"></i>
-                    <input 
-                        type="text" 
-                        placeholder="Buscar artista por nome ou cidade..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-
                 {loading ? (
-                    <div className="artists-loading">
-                        <div className="loading-spinner"></div>
-                        <p>Carregando catálogo de artistas...</p>
+                    <div className="artists-feedback">
+                        <div className="loader"></div>
+                        <p>Carregando galeria...</p>
                     </div>
                 ) : error ? (
-                    <div className="artists-empty">
-                        <div className="empty-icon">⚠️</div>
-                        <h3>Erro ao carregar artistas</h3>
+                    <div className="artists-feedback error">
+                        <i className="fas fa-exclamation-triangle icon-large"></i>
+                        <h3>Não foi possível carregar</h3>
                         <p>{error}</p>
-                        <button 
-                            onClick={() => window.location.reload()} 
-                            className="btn-artist-profile"
-                            style={{ marginTop: '20px', width: 'auto', padding: '10px 30px' }}
-                        >
-                            Tentar novamente
-                        </button>
+                        <button onClick={() => window.location.reload()} className="btn-retry">Tentar novamente</button>
                     </div>
                 ) : filteredArtists.length === 0 ? (
-                    <div className="artists-empty">
-                        <div className="empty-icon">🎨</div>
+                    <div className="artists-feedback empty">
+                        <i className="fas fa-paint-brush icon-large"></i>
                         <h3>Nenhum artista encontrado</h3>
-                        <p>{searchTerm ? 'Nenhum artista corresponde à sua busca.' : 'Ainda não há artistas cadastrados.'}</p>
-                        {!searchTerm && (
-                            <Link to="/cadastro" className="empty-add-btn">
-                                Seja o primeiro artista
-                            </Link>
-                        )}
+                        <p>{searchTerm ? 'Tente buscar com outros termos.' : 'Seja o primeiro a exibir sua arte!'}</p>
+                        {!searchTerm && <Link to="/cadastro" className="btn-primary">Criar Perfil</Link>}
                     </div>
                 ) : (
-                    <div className="artists-grid">
+                    <div className="modern-artists-grid">
                         {filteredArtists.map((artist) => (
-                            <div className="artist-directory-card" key={artist.id}>
-                              
-                                <div className="artist-card-banner-wrapper">
+                            <Link to={`/artista/${artist.id}`} className="modern-artist-card" key={artist.id}>
+                                
+                                <div className="card-image-container">
                                     <img 
                                         src={artist.profile?.banner_image ? 
                                             (artist.profile.banner_image.startsWith('http') ? 
                                                 artist.profile.banner_image : 
                                                 `http://127.0.0.1:8000${artist.profile.banner_image}`) : 
-                                            'https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=600'} 
-                                        alt="Capa" 
-                                        className="artist-card-banner"
-                                        onError={(e) => {
-                                            e.target.src = 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=600';
-                                        }}
+                                            'https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=800&auto=format&fit=crop'} 
+                                        alt={`Arte de ${artist.username}`} 
+                                        className="card-banner-img"
                                     />
-                                </div>
-
-                                <div className="artist-card-avatar-wrapper">
+                                    <div className="card-overlay"></div>
+                                    
                                     <img 
                                         src={artist.profile?.profile_image ? 
                                             (artist.profile.profile_image.startsWith('http') ? 
                                                 artist.profile.profile_image : 
                                                 `http://127.0.0.1:8000${artist.profile.profile_image}`) : 
-                                            `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.first_name || artist.username)}&background=5D4037&color=fff&size=100&rounded=true`} 
+                                            `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.first_name || artist.username)}&background=111111&color=fff&size=150`} 
                                         alt={artist.username} 
-                                        className="artist-card-avatar"
-                                        onError={(e) => {
-                                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.first_name || artist.username)}&background=5D4037&color=fff&size=100&rounded=true`;
-                                        }}
+                                        className="card-avatar-img"
                                     />
                                 </div>
 
-                                <div className="artist-card-body">
-                                   
-                                    <h2 className="artist-card-name">
+                                <div className="card-content">
+                                    <h2 className="artist-name">
                                         {artist.first_name ? `${artist.first_name} ${artist.last_name || ''}` : artist.username}
                                     </h2>
                                     
-                                    <p className="artist-card-location">
-                                        <i className="fas fa-map-marker-alt"></i> {artist.profile?.location || 'Local não informado'}
-                                    </p>
-
-                                    <p className="artist-card-bio">
-                                        {artist.profile?.bio || 'Este artista ainda não adicionou uma descrição biográfica ao seu perfil público.'}
-                                    </p>
-
-                                    <div className="artist-card-socials">
-                                        {artist.profile?.instagram && (
-                                            <a href={`https://instagram.com/${artist.profile.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="artist-social-link">
-                                                <i className="fab fa-instagram"></i>
-                                            </a>
-                                        )}
-                                        {artist.profile?.facebook && (
-                                            <a href={`https://facebook.com/${artist.profile.facebook}`} target="_blank" rel="noopener noreferrer" className="artist-social-link">
-                                                <i className="fab fa-facebook-f"></i>
-                                            </a>
-                                        )}
-                                        {artist.profile?.twitter && (
-                                            <a href={`https://twitter.com/${artist.profile.twitter}`} target="_blank" rel="noopener noreferrer" className="artist-social-link">
-                                                <i className="fab fa-twitter"></i>
-                                            </a>
-                                        )}
+                                    <div className="artist-location">
+                                        <i className="fas fa-map-marker-alt"></i>
+                                        <span>{artist.profile?.location}</span>
                                     </div>
 
-                                    <Link to={`/artista/${artist.id}`} className="btn-artist-profile">
-                                        Ver Galeria
-                                    </Link>
+                                    <p className="artist-bio">
+                                        {artist.profile?.bio}
+                                    </p>
+
+                                    <div className="card-footer">
+                                        <span className="view-profile-text">Ver Galeria <i className="fas fa-arrow-right"></i></span>
+                                        <div className="social-mini-icons">
+                                            {artist.profile?.instagram && <i className="fab fa-instagram"></i>}
+                                            {artist.profile?.twitter && <i className="fab fa-twitter"></i>}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            </Link>
                         ))}
                     </div>
                 )}
