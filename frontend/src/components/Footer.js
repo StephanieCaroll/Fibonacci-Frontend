@@ -33,7 +33,7 @@ function Footer() {
                             <h6 className="footer-title">Navegação</h6>
                             <ul className="footer-links-list">
                                 <li><a href="/galeria">Galeria</a></li>
-                                <li><a href="#">Artistas</a></li>
+                                <li><a href="/artistas">Artistas</a></li>
                             </ul>
                         </div>
                         <div className="col-6 col-md-2 mb-4 mb-md-0">
@@ -45,7 +45,7 @@ function Footer() {
                         </div>
                         <div className="col-12 col-md-4">
                             <h6 className="footer-title">Contato</h6>
-                            <p className="contact-email">contato@galerialocal.com.br</p>
+                            <p className="contact-email">fibonacci@gmail.com.br</p>
                         </div>
                     </div>
                     <div className="footer-bottom text-center py-3">

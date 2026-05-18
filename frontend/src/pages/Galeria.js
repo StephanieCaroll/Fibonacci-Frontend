@@ -166,7 +166,7 @@ function Galeria() {
                                         <small className="text-muted artista-obra">{product.brand}</small>
                                         <div className="d-flex justify-content-between align-items-center mt-2">
                                             <p className="font-weight-bold mb-0 price-text">R$ {product.price}</p>
-                                            <span className="ver-detalhes-link">Ver detalhes</span>
+                                            
                                         </div>
                                     </div>
                                 </div>

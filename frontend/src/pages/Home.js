@@ -1,29 +1,67 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import '../styles/home.css';
 
 function Home() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const history = useHistory();
 
     useEffect(() => {
+        let isMounted = true; 
+
         async function fetchProducts() {
             try {
-                const { data } = await axios.get('http://127.0.0.1:8000/fibonacci/products/');
-                setProducts(data.products.slice(0, 8)); // Mostra 8 obras
-                setLoading(false);
+                const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+                const config = userInfo ? {
+                    headers: { Authorization: `Bearer ${userInfo.token || userInfo.access}` }
+                } : {};
+
+                const { data } = await axios.get('http://127.0.0.1:8000/fibonacci/products/', config);
+                
+                const productsData = data.products ? data.products : data;
+                const productsArray = Array.isArray(productsData) ? productsData : [];
+
+                const recentProducts = productsArray
+                    .sort((a, b) => (b.id || b._id) - (a.id || a._id))
+                    .slice(0, 4);
+
+                if (isMounted) {
+                    setProducts(recentProducts);
+                    setLoading(false);
+                }
             } catch (error) {
-                console.error("Erro ao carregar obras:", error);
-                setLoading(false);
+                if (isMounted) {
+                    console.error("Erro ao carregar obras:", error);
+                    setLoading(false);
+                }
             }
         }
+        
         fetchProducts();
+
+        return () => {
+            isMounted = false;
+        };
     }, []);
+
+    const handleCardClick = (id) => {
+        history.push(`/product/${id}`);
+    };
+
+    const getCategoryDisplay = (product) => {
+        const cat = product.category_name || product.category;
+        if (!cat) return 'Arte';
+        
+        const catString = String(cat);
+        if (catString.toLowerCase() === 'digital') return 'Arte Digital';
+        return catString;
+    };
 
     return (
         <div className="home-page animate-fade-in">
-            {/* Hero Section Refinada */}
+          
             <header className="hero-wrapper">
                 <div className="container">
                     <div className="row align-items-center">
@@ -45,36 +83,49 @@ function Home() {
                 </div>
             </header>
 
-            {/* Grid de Obras */}
             <main className="container pb-5">
-                <div className="section-header">
-                    <h2>Obras Recentes</h2>
+                <div className="section-header d-flex justify-content-between align-items-center mb-4">
+                    <h2 className="mb-0">Obras Recentes</h2>
                     <Link to="/galeria" className="text-dark small font-weight-bold text-decoration-none">VER TUDO →</Link>
                 </div>
 
-                <div className="row">
-                    {loading ? (
-                        <p className="col-12 text-center text-muted py-5">Carregando acervo...</p>
-                    ) : (
-                        products.map((product) => (
-                            <div className="col-6 col-md-4 col-lg-3" key={product._id}>
-                                <Link to={`/product/${product._id}`} className="art-card">
-                                    <div className="image-container">
+                {loading ? (
+                    <div className="text-center py-5">
+                        <h5 className="text-muted">Carregando acervo...</h5>
+                    </div>
+                ) : (
+                    <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+                        {products.map((product) => (
+                            <div className="col mb-4" key={product.id || product._id}>
+                                <div 
+                                    className="card-obra" 
+                                    onClick={() => handleCardClick(product.id || product._id)}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <span className="badge-categoria text-uppercase">
+                                        {getCategoryDisplay(product)}
+                                    </span>
+                                    
+                                    <div className="img-container">
                                         <img 
-                                            src={`http://127.0.0.1:8000${product.image}`} 
+                                            src={product.image && product.image.startsWith('http') ? product.image : `http://127.0.0.1:8000${product.image}`} 
+                                            className="obra-img" 
                                             alt={product.name} 
                                         />
                                     </div>
-                                    <div className="art-details">
-                                        <h3>{product.name}</h3>
-                                        <p className="artist">{product.brand || 'Artista Independente'}</p>
-                                        <p className="price">R$ {product.price}</p>
+
+                                    <div className="pt-3">
+                                        <h6 className="mb-0 font-weight-bold text-uppercase nome-obra">{product.name}</h6>
+                                        <small className="text-muted artista-obra">{product.brand || 'Artista Independente'}</small>
+                                        <div className="d-flex justify-content-between align-items-center mt-2">
+                                            <p className="font-weight-bold mb-0 price-text">R$ {product.price}</p>
+                                        </div>
                                     </div>
-                                </Link>
+                                </div>
                             </div>
-                        ))
-                    )}
-                </div>
+                        ))}
+                    </div>
+                )}
             </main>
         </div>
     );
