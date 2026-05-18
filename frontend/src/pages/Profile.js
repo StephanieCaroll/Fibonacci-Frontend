@@ -10,6 +10,7 @@ function Profile() {
 
     const [userInfo, setUserInfo] = useState(null);
     const [userProducts, setUserProducts] = useState([]);
+    const [userOrders, setUserOrders] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
     const [activeTab, setActiveTab] = useState('obras');
     const [countries, setCountries] = useState([]);
@@ -23,7 +24,6 @@ function Profile() {
     const [tempAvatar, setTempAvatar] = useState(null);
     const [tempBanner, setTempBanner] = useState(null);
 
-    // Array de imagens padrão de arte (mais confiáveis)
     const defaultArtAvatars = [
         'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=400&h=400&q=80',
         'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?auto=format&fit=crop&w=400&h=400&q=80',
@@ -43,7 +43,6 @@ function Profile() {
         'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=1200&h=400&q=80'
     ];
 
-    // Função para gerar imagem aleatória da lista
     const getRandomDefaultImage = (type) => {
         if (type === 'avatar') {
             const randomIndex = Math.floor(Math.random() * defaultArtAvatars.length);
@@ -54,7 +53,6 @@ function Profile() {
         }
     };
 
-    // Função para salvar imagens padrão no backend
     const saveDefaultImagesToBackend = async (user, token) => {
         try {
             const avatarUrl = getRandomDefaultImage('avatar');
@@ -67,18 +65,14 @@ function Profile() {
                 }
             };
             
-            // Salvar as URLs no backend
             await axios.put(
                 `http://127.0.0.1:8000/fibonacci/users/profile/update/`,
                 { avatar: avatarUrl, banner: bannerUrl },
                 config
             );
             
-            // Atualizar o usuário no localStorage
             const updatedUser = { ...user, avatar: avatarUrl, banner: bannerUrl };
             localStorage.setItem('userInfo', JSON.stringify(updatedUser));
-            
-            console.log("Imagens padrão salvas no backend para:", user.name);
             return updatedUser;
             
         } catch (error) {
@@ -88,7 +82,6 @@ function Profile() {
     };
 
     useEffect(() => {
-        
         axios.get('https://restcountries.com/v3.1/all?fields=name,translations')
             .then(res => {
                 const list = res.data.map(c => c.translations.por.common).sort();
@@ -102,29 +95,22 @@ function Profile() {
         } else {
             const user = JSON.parse(storedUser);
             
-            // Verificar se o usuário já tem imagens no backend
             const checkAndSetDefaultImages = async () => {
                 let currentUser = user;
                 
-                // Se não tem avatar ou banner, buscar do backend ou gerar
                 if (!user.avatar || user.avatar === '' || !user.banner || user.banner === '') {
                     try {
-                        // Tentar buscar o perfil atual do backend
                         const config = { headers: { Authorization: `Bearer ${user.token || user.access}` } };
                         const { data } = await axios.get(`http://127.0.0.1:8000/fibonacci/users/profile/`, config);
                         
-                        // Se o backend não tem imagens, gerar e salvar
                         if (!data.avatar || data.avatar === '' || !data.banner || data.banner === '') {
                             const updatedUser = await saveDefaultImagesToBackend(user, user.token || user.access);
                             currentUser = updatedUser;
                         } else {
-                            // Usar as imagens do backend
                             currentUser = { ...user, avatar: data.avatar, banner: data.banner };
                             localStorage.setItem('userInfo', JSON.stringify(currentUser));
                         }
                     } catch (error) {
-                        console.error("Erro ao verificar perfil no backend:", error);
-                        // Se falhar, gerar e salvar mesmo assim
                         const updatedUser = await saveDefaultImagesToBackend(user, user.token || user.access);
                         currentUser = updatedUser;
                     }
@@ -136,7 +122,10 @@ function Profile() {
                 setEditLocation(currentUser.location || '');
                 setTempAvatar(currentUser.avatar || null);
                 setTempBanner(currentUser.banner || null);
-                fetchUserProducts(currentUser.id || currentUser._id, currentUser.token || currentUser.access);
+                
+                const token = currentUser.token || currentUser.access;
+                fetchUserProducts(currentUser.id || currentUser._id, token);
+                fetchUserOrders(token);
             };
             
             checkAndSetDefaultImages();
@@ -192,7 +181,6 @@ function Profile() {
                 return false;
             });
             
-            console.log("Produtos filtrados:", filteredProducts); 
             setUserProducts(filteredProducts);
             
         } catch (e) {
@@ -200,6 +188,17 @@ function Profile() {
             setUserProducts([]);
         } finally {
             setRefreshing(false);
+        }
+    };
+
+    const fetchUserOrders = async (token) => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${token}` } };
+            const { data } = await axios.get('http://127.0.0.1:8000/fibonacci/orders/myorders/', config);
+            console.log('📦 Pedidos recebidos do backend:', data);
+            setUserOrders(data);
+        } catch (error) {
+            console.error("Erro ao carregar compras:", error);
         }
     };
 
@@ -228,14 +227,12 @@ function Profile() {
     const getArtAvatar = () => {
         if (tempAvatar) return tempAvatar;
         if (userInfo?.avatar && userInfo.avatar !== '') return userInfo.avatar;
-        // Fallback: imagem padrão da lista
         return defaultArtAvatars[0];
     };
 
     const getArtBanner = () => {
         if (tempBanner) return tempBanner;
         if (userInfo?.banner && userInfo.banner !== '') return userInfo.banner;
-        // Fallback: imagem padrão da lista
         return defaultArtBanners[0];
     };
 
@@ -311,15 +308,34 @@ function Profile() {
     };
 
     const handleProductClick = (productId) => {
-        console.log("Navegando para obra:", productId);
-        history.push(`/product/${productId}`);
+        if (productId) {
+            console.log('🎯 Navegando para produto ID:', productId);
+            history.push(`/product/${productId}`);
+        } else {
+            console.error('❌ Tentativa de navegar sem productId');
+        }
+    };
+
+    const extractProductId = (item) => {
+       
+        if (item.product) {
+            if (typeof item.product === 'object') {
+                return item.product._id || item.product.id;
+            }
+            if (typeof item.product === 'string' || typeof item.product === 'number') {
+                return item.product;
+            }
+        }
+        if (item.productId) return item.productId;
+        if (item.product_id) return item.product_id;
+        if (item._id && item._id !== item.order) return item._id;
+        return null;
     };
 
     if (!userInfo) return null;
 
     return (
         <div className="profile-page animate-fade-in">
-
             <div className={`profile-banner-container ${isEditing ? 'editing-active' : ''}`} 
                  onClick={() => isEditing && fileInputBanner.current.click()}>
                 <img src={getArtBanner()} alt="Banner de Arte" className="profile-banner" 
@@ -336,7 +352,6 @@ function Profile() {
             </div>
 
             <div className="profile-header-content">
-               
                 <div className={`avatar-wrapper ${isEditing ? 'editing-active' : ''}`} 
                      onClick={() => isEditing && fileInputAvatar.current.click()}>
                     <img src={getArtAvatar()} alt="Avatar de Arte" className="profile-avatar"
@@ -408,11 +423,9 @@ function Profile() {
                     ) : (
                         <>
                             <button className="btn-profile-primary" onClick={() => setIsEditing(true)}>Editar Perfil</button>
-                            
                             <Link to="/adicionar-obra" className="btn-add-artwork-profile" title="Adicionar nova obra">
                                 <span className="plus-icon">+</span> Adicionar Obra
                             </Link>
-
                             <button className="btn-logout-minimal" onClick={() => { localStorage.removeItem('userInfo'); history.push('/login'); }}>Sair</button>
                         </>
                     )}
@@ -423,12 +436,16 @@ function Profile() {
                         <div className={`profile-tab ${activeTab === 'obras' ? 'active' : ''}`} onClick={() => setActiveTab('obras')}>
                             Minhas Obras
                         </div>
+                        <div className={`profile-tab ${activeTab === 'compras' ? 'active' : ''}`} onClick={() => setActiveTab('compras')}>
+                            Minhas Compras
+                        </div>
                         <button 
                             className="refresh-btn"
                             onClick={() => {
                                 const userId = userInfo.id || userInfo._id;
                                 const token = userInfo.token || userInfo.access;
                                 fetchUserProducts(userId, token);
+                                fetchUserOrders(token);
                             }}
                             disabled={refreshing}
                         >
@@ -438,51 +455,118 @@ function Profile() {
                 </div>
 
                 <div className="profile-content-body">
-                    <div className="profile-grid">
-                        {userProducts.length > 0 ? userProducts.map(p => {
-                            
-                            const productId = p.id || p._id;
-                            console.log("Produto:", p.name, "ID:", productId); 
-                            
-                            return (
-                                <div 
-                                    className="profile-art-card" 
-                                    key={productId}
-                                    onClick={() => handleProductClick(productId)}
-                                >
-                                    <div className="art-card-image-wrapper">
-                                        <img 
-                                            src={p.image} 
-                                            alt={p.name} 
-                                            className="art-card-image"
-                                            onError={(e) => {
-                                                e.target.src = defaultArtAvatars[0];
-                                            }}
-                                        />
-                                        <div className="art-card-overlay">
-                                            <span className="view-details">Ver Detalhes</span>
+                    {activeTab === 'obras' ? (
+                        <div className="profile-grid">
+                            {userProducts.length > 0 ? userProducts.map(p => {
+                                const productId = p.id || p._id;
+                                return (
+                                    <div 
+                                        className="profile-art-card" 
+                                        key={productId}
+                                        onClick={() => handleProductClick(productId)}
+                                    >
+                                        <div className="art-card-image-wrapper">
+                                            <img 
+                                                src={p.image} 
+                                                alt={p.name} 
+                                                className="art-card-image"
+                                                onError={(e) => {
+                                                    e.target.src = defaultArtAvatars[0];
+                                                }}
+                                            />
+                                            <div className="art-card-overlay">
+                                                <span className="view-details">Ver Detalhes</span>
+                                            </div>
+                                        </div>
+                                        <div className="art-card-info">
+                                            <h3 className="art-card-title">{p.name}</h3>
+                                            <p className="art-card-price">
+                                                R$ {typeof p.price === 'number' ? p.price.toFixed(2) : p.price}
+                                            </p>
+                                            {p.category && <span className="art-card-category">{p.category}</span>}
                                         </div>
                                     </div>
-                                    <div className="art-card-info">
-                                        <h3 className="art-card-title">{p.name}</h3>
-                                        <p className="art-card-price">
-                                            R$ {typeof p.price === 'number' ? p.price.toFixed(2) : p.price}
-                                        </p>
-                                        {p.category && <span className="art-card-category">{p.category}</span>}
+                                );
+                            }) : (
+                                <div className="empty-state">
+                                    <div className="empty-icon">🎨</div>
+                                    <h3>Nenhuma obra cadastrada</h3>
+                                    <p>Comece adicionando sua primeira obra de arte!</p>
+                                    <Link to="/adicionar-obra" className="empty-add-btn">
+                                        + Adicionar Obra
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="orders-list">
+                            {userOrders.length > 0 ? userOrders.map(order => (
+                                <div key={order._id} className="order-item-card">
+                                    <div className="order-header">
+                                        <span className="order-id">Pedido #{String(order._id).slice(-8)}</span>
+                                        <span className="order-date">📅 {new Date(order.createdAt).toLocaleDateString('pt-BR')}</span>
+                                        <span className="order-total">💰 Total: R$ {order.totalPrice}</span>
+                                    </div>
+                                    <div className="order-products-mini-grid">
+                                        {order.orderItems && order.orderItems.map(item => {
+                                            // Extrai o ID do produto corretamente
+                                            const productId = extractProductId(item);
+                                            
+                                            // Log para debug (remova depois que funcionar)
+                                            console.log('Item da compra:', {
+                                                nome: item.name,
+                                                productId: productId,
+                                                dadosCompletos: item
+                                            });
+                                            
+                                            return (
+                                                <div 
+                                                    key={item._id} 
+                                                    className="purchased-product-card"
+                                                    onClick={() => {
+                                                        if (productId) {
+                                                            handleProductClick(productId);
+                                                        } else {
+                                                            console.error('❌ Produto sem ID:', item);
+                                                            alert(`Não foi possível abrir os detalhes de "${item.name}". ID do produto não encontrado.`);
+                                                        }
+                                                    }}
+                                                >
+                                                    <img 
+                                                        src={item.image && item.image.startsWith('http') ? item.image : `http://127.0.0.1:8000${item.image}`} 
+                                                        alt={item.name} 
+                                                        className="purchased-product-image"
+                                                        onError={(e) => {
+                                                            e.target.src = defaultArtAvatars[0];
+                                                        }}
+                                                    />
+                                                    <div className="purchased-product-info">
+                                                        <p className="purchased-product-name">{item.name}</p>
+                                                        <div className="purchased-product-details">
+                                                            <small>📦 Qtd: {item.qty}</small>
+                                                            <small>💰 R$ {item.price}</small>
+                                                        </div>
+                                                        <span className="purchased-product-link">
+                                                            {productId ? 'Clique para ver detalhes →' : 'ID não disponível'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
-                            );
-                        }) : (
-                            <div className="empty-state">
-                                <div className="empty-icon">🎨</div>
-                                <h3>Nenhuma obra cadastrada</h3>
-                                <p>Comece adicionando sua primeira obra de arte!</p>
-                                <Link to="/adicionar-obra" className="empty-add-btn">
-                                    + Adicionar Obra
-                                </Link>
-                            </div>
-                        )}
-                    </div>
+                            )) : (
+                                <div className="empty-state">
+                                    <div className="empty-icon">🛍️</div>
+                                    <h3>Você ainda não fez compras</h3>
+                                    <p>Explore a galeria e comece sua coleção de arte!</p>
+                                    <Link to="/galeria" className="empty-add-btn">
+                                        Ir para Galeria
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 

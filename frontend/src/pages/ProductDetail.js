@@ -12,11 +12,15 @@ function ProductDetail() {
     const [quantity, setQuantity] = useState(1);
     const [reviews, setReviews] = useState([]);
     const [averageRating, setAverageRating] = useState(0);
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
+    const [showCartModal, setShowCartModal] = useState(false);
+    const [addedProduct, setAddedProduct] = useState(null);
+
+    const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const userInfo = JSON.parse(localStorage.getItem('userInfo'));
                 const config = userInfo ? {
                     headers: { Authorization: `Bearer ${userInfo.access || userInfo.token}` }
                 } : {};
@@ -42,31 +46,91 @@ function ProductDetail() {
         fetchProduct();
     }, [id]);
 
+    const stockQuantity = product?.countInstock || 0;
+    const isOutOfStock = stockQuantity === 0;
+    
+    const productOwnerId = product?.user?._id || product?.user?.id || product?.user;
+    const currentUserId = userInfo?.id || userInfo?._id;
+    const isOwner = currentUserId && productOwnerId && String(currentUserId) === String(productOwnerId);
+
     const handleQuantityChange = (delta) => {
-       
-        const stock = product.countInstock || product.stock || 0;
         const newQuantity = quantity + delta;
-        if (newQuantity >= 1 && newQuantity <= stock) {
+        if (newQuantity >= 1 && newQuantity <= stockQuantity) {
             setQuantity(newQuantity);
         }
     };
 
     const handleAddToCart = () => {
-        const stock = product.countInstock || product.stock || 0;
-        if (stock === 0) {
+        if (isOutOfStock) {
             alert('Produto esgotado!');
             return;
         }
-        console.log(`Adicionando ${quantity} x ${product?.name}`);
+
+        if (isOwner) {
+            alert('Você não pode comprar sua própria obra de arte.');
+            return;
+        }
+
+        if (!userInfo) {
+            alert("Você precisa estar logado para adicionar ao carrinho.");
+            history.push('/login');
+            return;
+        }
+
+        setIsAddingToCart(true);
+
+        const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
+        
+        const existingItemIndex = existingCart.findIndex(
+            item => (item._id || item.id) === (product._id || product.id)
+        );
+
+        if (existingItemIndex !== -1) {
+            existingCart[existingItemIndex].qty += quantity;
+        } else {
+            existingCart.push({
+                _id: product._id || product.id,
+                id: product._id || product.id,
+                name: product.name,
+                brand: product.brand || "Artista Local",
+                price: Number(product.price),
+                image: product.image,
+                qty: quantity,
+                countInstock: product.countInstock
+            });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(existingCart));
+        
+        window.dispatchEvent(new Event('storage'));
+        
+        const imageUrl = product.image && product.image.startsWith('http') 
+            ? product.image 
+            : `http://127.0.0.1:8000${product.image}`;
+        
+        setAddedProduct({
+            name: product.name,
+            image: imageUrl,
+            quantity: quantity,
+            price: Number(product.price),
+            artist: product.brand || "Artista Local"
+        });
+        
+        setShowCartModal(true);
+        setIsAddingToCart(false);
+    };
+
+    const closeCartModal = (goToCart = false) => {
+        setShowCartModal(false);
+        if (goToCart) {
+            history.push('/cart'); 
+        }
     };
 
     const getStockStatus = () => {
-      
-        const stock = product.countInstock || product.stock || 0;
-        
-        if (stock === 0) {
+        if (stockQuantity === 0) {
             return { text: 'ESGOTADO', class: 'out-of-stock', color: '#E74C3C' };
-        } else if (stock <= 5) {
+        } else if (stockQuantity <= 5) {
             return { text: 'ESTOQUE BAIXO', class: 'low-stock', color: '#F39C12' };
         } else {
             return { text: 'EM ESTOQUE', class: 'in-stock', color: '#27AE60' };
@@ -93,14 +157,9 @@ function ProductDetail() {
         </div>
     );
 
-    const stockQuantity = product.countInstock || product.stock || 0;
-    const isOutOfStock = stockQuantity === 0;
-
     const imageUrl = product.image && product.image.startsWith('http') 
         ? product.image 
-        : product.image 
-            ? `http://127.0.0.1:8000${product.image}`
-            : '/api/placeholder/600/800';
+        : `http://127.0.0.1:8000${product.image}`;
 
     const renderStars = (rating) => {
         const fullStars = Math.floor(rating);
@@ -126,7 +185,7 @@ function ProductDetail() {
 
             <div className="product-layout">
                 <div className="product-image-section">
-                    <div className="product-image-wrapper">
+                    <div className="product-image-wrapper" style={{ filter: isOutOfStock ? 'grayscale(1)' : 'none' }}>
                         {!imageError ? (
                             <img 
                                 src={imageUrl} 
@@ -143,11 +202,7 @@ function ProductDetail() {
                         <div className="image-badge">
                             <span>Original</span>
                         </div>
-                        {stockQuantity <= 5 && stockQuantity > 0 && (
-                            <div className="stock-badge-image">
-                                <span>Últimas {stockQuantity} unidades!</span>
-                            </div>
-                        )}
+                        {isOutOfStock && <div className="sold-out-overlay">VENDIDO</div>}
                     </div>
                 </div>
 
@@ -167,7 +222,7 @@ function ProductDetail() {
                         <div className={`stock-card ${stockStatus.class}`}>
                             <div className="stock-header">
                                 <span className="stock-icon">
-                                    {stockQuantity === 0 ? '❌' : '✓'}
+                                    {isOutOfStock ? '✕' : '✓'}
                                 </span>
                                 <span className="stock-status-text">{stockStatus.text}</span>
                             </div>
@@ -179,15 +234,9 @@ function ProductDetail() {
                                 </span>
                             </div>
                             
-                            {stockQuantity > 0 && stockQuantity <= 10 && (
+                            {!isOutOfStock && stockQuantity <= 10 && (
                                 <div className="stock-warning-message">
-                                    ⚡ Apenas {stockQuantity} {stockQuantity === 1 ? 'unidade' : 'unidades'} em estoque! Não perca essa oportunidade.
-                                </div>
-                            )}
-                            
-                            {stockQuantity === 0 && (
-                                <div className="stock-soldout-message">
-                                    🔴 Produto esgotado. Volte em breve!
+                                    <i className="fas fa-exclamation-triangle"></i> Apenas {stockQuantity} unidades em estoque!
                                 </div>
                             )}
                         </div>
@@ -212,14 +261,9 @@ function ProductDetail() {
                                         <span className="review-author">{review.user_name || 'Comprador'}</span>
                                         <div className="review-stars">{renderStars(review.rating)}</div>
                                     </div>
-                                    <p className="review-comment">{review.comment || 'Excelente obra, recomendo!'}</p>
+                                    <p className="review-comment">{review.comment || 'Excelente obra!'}</p>
                                 </div>
                             ))}
-                            {reviews.length > 2 && (
-                                <button className="view-all-reviews">
-                                    Ver todas as {reviews.length} avaliações
-                                </button>
-                            )}
                         </div>
                     )}
 
@@ -231,20 +275,14 @@ function ProductDetail() {
                                 currency: 'BRL' 
                             })}
                         </div>
-                        <div className="price-installments">
-                            ou em até 12x de {(Number(product.price) / 12).toLocaleString('pt-BR', { 
-                                style: 'currency', 
-                                currency: 'BRL' 
-                            })} sem juros
-                        </div>
                     </div>
 
                     <div className="product-description-section">
                         <h3>Sobre a obra</h3>
-                        <p>{product.description || "Esta peça única representa a convergência entre a matemática sagrada de Fibonacci e a expressão artística contemporânea. Cada detalhe foi cuidadosamente elaborado para proporcionar uma experiência estética singular."}</p>
+                        <p>{product.description || "Esta peça única representa a convergência entre a matemática sagrada e a expressão artística Fibonacci."}</p>
                     </div>
 
-                    {!isOutOfStock && (
+                    {!isOutOfStock && !isOwner && (
                         <div className="quantity-selector">
                             <label>Quantidade</label>
                             <div className="quantity-controls">
@@ -253,7 +291,7 @@ function ProductDetail() {
                                     disabled={quantity <= 1}
                                     className="quantity-btn"
                                 >
-                                    −
+                                    <i className="fas fa-minus"></i>
                                 </button>
                                 <span className="quantity-value">{quantity}</span>
                                 <button 
@@ -261,11 +299,8 @@ function ProductDetail() {
                                     disabled={quantity >= stockQuantity}
                                     className="quantity-btn"
                                 >
-                                    +
+                                    <i className="fas fa-plus"></i>
                                 </button>
-                            </div>
-                            <div className="stock-info-text">
-                                Máximo de {stockQuantity} unidades por compra
                             </div>
                         </div>
                     )}
@@ -273,48 +308,107 @@ function ProductDetail() {
                     <div className="action-buttons">
                         <button 
                             onClick={handleAddToCart} 
-                            className={`btn-add-to-cart ${isOutOfStock ? 'disabled' : ''}`}
-                            disabled={isOutOfStock}
+                            className={`btn-add-to-cart ${isOutOfStock || isAddingToCart || isOwner ? 'disabled' : ''}`}
+                            disabled={isOutOfStock || isAddingToCart || isOwner}
+                            style={{
+                                backgroundColor: isOwner ? '#666' : (isOutOfStock ? '#ccc' : ''),
+                                cursor: (isOutOfStock || isOwner) ? 'not-allowed' : 'pointer'
+                            }}
                         >
-                            {isOutOfStock ? 'ESGOTADO' : 'Adicionar à Coleção'}
+                            {isAddingToCart ? (
+                                <><i className="fas fa-spinner fa-spin"></i> ADICIONANDO...</>
+                            ) : isOutOfStock ? (
+                                'VENDIDO'
+                            ) : isOwner ? (
+                                'SUA PRÓPRIA OBRA'
+                            ) : (
+                                <><i className="fas fa-shopping-cart"></i> Adicionar ao Carrinho</>
+                            )}
                         </button>
-                        {!isOutOfStock && (
-                            <button className="btn-wishlist">
-                                ♡ Favoritar
-                            </button>
-                        )}
                     </div>
+
+                    {isOwner && (
+                        <p style={{ color: '#e74c3c', fontSize: '0.85rem', marginTop: '10px' }}>
+                            <i className="fas fa-info-circle"></i> Artistas não podem comprar suas próprias obras.
+                        </p>
+                    )}
 
                     <div className="extra-info">
                         <div className="info-item">
-                            <span>✓</span>
+                            <i className="fas fa-certificate"></i>
                             <p>Certificado de Autenticidade Assinado</p>
                         </div>
                         <div className="info-item">
-                            <span>✓</span>
+                            <i className="fas fa-truck"></i>
                             <p>Frete grátis para todo Brasil</p>
                         </div>
                         <div className="info-item">
-                            <span>✓</span>
-                            <p>Garantia de 30 dias</p>
-                        </div>
-                        <div className="info-item">
-                            <span>📦</span>
-                            <p>Estoque atual: {stockQuantity} {stockQuantity === 1 ? 'unidade' : 'unidades'}</p>
+                            <i className="fas fa-boxes"></i>
+                            <p>Estoque atual: {stockQuantity} unidades</p>
                         </div>
                     </div>
 
                     <div className="share-section">
                         <p>Compartilhar:</p>
                         <div className="social-icons">
-                            <span>📱</span>
-                            <span>📘</span>
-                            <span>📸</span>
-                            <span>🐦</span>
+                            <i className="fab fa-instagram"></i>
+                            <i className="fab fa-facebook"></i>
+                            <i className="fab fa-twitter"></i>
+                            <i className="fab fa-pinterest"></i>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {showCartModal && addedProduct && (
+                <div className="cart-modal-overlay">
+                    <div className="cart-modal-content animate-pop-in">
+                        <div className="cart-modal-icon">
+                            <div className="cart-success-animation">
+                                <svg className="cart-checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                                    <circle className="cart-checkmark-circle" cx="26" cy="26" r="25" fill="none" />
+                                    <path className="cart-checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <h2 className="cart-modal-title">Adicionado ao Carrinho</h2>
+                        
+                        <div className="cart-art-preview">
+                            <img 
+                                src={addedProduct.image} 
+                                alt={addedProduct.name}
+                                className="cart-art-image"
+                            />
+                            <div className="cart-art-info">
+                                <h3 className="cart-art-name">{addedProduct.name}</h3>
+                                <p className="cart-art-artist">{addedProduct.artist}</p>
+                                <div className="cart-art-details">
+                                    <span><i className="fas fa-cube"></i> Quantidade: {addedProduct.quantity}</span>
+                                    <span><i className="fas fa-tag"></i> {addedProduct.price.toLocaleString('pt-BR', { 
+                                        style: 'currency', 
+                                        currency: 'BRL' 
+                                    })}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="cart-message">
+                            <p><i className="fas fa-check-circle"></i> A obra foi adicionada ao seu carrinho!</p>
+                            <p className="cart-submessage">Você pode continuar comprando ou finalizar seu pedido agora.</p>
+                        </div>
+                        
+                        <div className="cart-buttons">
+                            <button className="cart-btn-primary" onClick={() => closeCartModal(true)}>
+                                <i className="fas fa-shopping-cart"></i> Ver Carrinho
+                            </button>
+                            <button className="cart-btn-secondary" onClick={() => closeCartModal(false)}>
+                                <i className="fas fa-store"></i> Continuar Comprando
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

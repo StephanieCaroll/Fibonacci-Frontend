@@ -25,7 +25,6 @@ function Galeria() {
                 } : {};
 
                 const { data } = await axios.get('http://127.0.0.1:8000/fibonacci/products/', config);
-                // Ajuste para lidar com diferentes formatos de resposta da API
                 const productsData = data.products ? data.products : data;
                 setProducts(Array.isArray(productsData) ? productsData : []);
                 setLoading(false);
@@ -37,7 +36,8 @@ function Galeria() {
         fetchProducts();
     }, []);
 
-    const handleCardClick = (id) => {
+    const handleCardClick = (id, isOutOfStock) => {
+        if (isOutOfStock) return;
         history.push(`/product/${id}`);
     };
 
@@ -142,36 +142,46 @@ function Galeria() {
                     <div className="text-center py-5"><h5>Sincronizando acervo...</h5></div>
                 ) : (
                     <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
-                        {filteredProducts.map((product) => (
-                            <div className="col mb-4" key={product.id || product._id}>
-                                <div 
-                                    className="card-obra" 
-                                    onClick={() => handleCardClick(product.id || product._id)}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <span className="badge-categoria text-uppercase">
-                                        {product.category_name || 'Arte'}
-                                    </span>
-                                    
-                                    <div className="img-container">
-                                        <img 
-                                            src={product.image.startsWith('http') ? product.image : `http://127.0.0.1:8000${product.image}`} 
-                                            className="obra-img" 
-                                            alt={product.name} 
-                                        />
-                                    </div>
+                        {filteredProducts.map((product) => {
+                            const isOutOfStock = (product.countInstock || 0) <= 0;
 
-                                    <div className="pt-3">
-                                        <h6 className="mb-0 font-weight-bold text-uppercase nome-obra">{product.name}</h6>
-                                        <small className="text-muted artista-obra">{product.brand}</small>
-                                        <div className="d-flex justify-content-between align-items-center mt-2">
-                                            <p className="font-weight-bold mb-0 price-text">R$ {product.price}</p>
-                                            
+                            return (
+                                <div className="col mb-4" key={product.id || product._id}>
+                                    <div 
+                                        className={`card-obra ${isOutOfStock ? 'esgotado' : ''}`} 
+                                        onClick={() => handleCardClick(product.id || product._id, isOutOfStock)}
+                                        style={{ 
+                                            cursor: isOutOfStock ? 'default' : 'pointer',
+                                            filter: isOutOfStock ? 'grayscale(100%)' : 'none',
+                                            opacity: isOutOfStock ? 0.7 : 1,
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                    >
+                                        <span className={`badge-categoria text-uppercase ${isOutOfStock ? 'bg-secondary' : ''}`}>
+                                            {isOutOfStock ? 'ESGOTADO' : (product.category_name || 'Arte')}
+                                        </span>
+                                        
+                                        <div className="img-container">
+                                            <img 
+                                                src={product.image.startsWith('http') ? product.image : `http://127.0.0.1:8000${product.image}`} 
+                                                className="obra-img" 
+                                                alt={product.name} 
+                                            />
+                                        </div>
+
+                                        <div className="pt-3">
+                                            <h6 className="mb-0 font-weight-bold text-uppercase nome-obra">{product.name}</h6>
+                                            <small className="text-muted artista-obra">{product.brand}</small>
+                                            <div className="mt-2">
+                                                <p className="font-weight-bold mb-0 price-text">
+                                                    {isOutOfStock ? 'Indisponível' : `R$ ${product.price}`}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>

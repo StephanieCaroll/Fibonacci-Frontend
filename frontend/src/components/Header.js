@@ -1,9 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 function Header() {
-    // Checa se existe alguém logado
+    const [cartCount, setCartCount] = useState(0);
+    
     const userInfo = localStorage.getItem('userInfo');
+
+    const updateCartCount = () => {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const totalItems = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
+        setCartCount(totalItems);
+    };
+
+    useEffect(() => {
+        updateCartCount();
+        
+        window.addEventListener('storage', updateCartCount);
+        
+        const interval = setInterval(updateCartCount, 1000);
+        
+        return () => {
+            window.removeEventListener('storage', updateCartCount);
+            clearInterval(interval);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleFocus = () => updateCartCount();
+        window.addEventListener('focus', handleFocus);
+        return () => window.removeEventListener('focus', handleFocus);
+    }, []);
 
     return (
         <nav className="navbar navbar-expand-lg bg-white py-4 border-bottom sticky-top">
@@ -35,8 +61,12 @@ function Header() {
                     </Link>
                     
                     <Link to="/cart" className="text-dark position-relative">
-                        <i className="fas fa-shopping-bag"></i>
-                        <span className="badge bg-dark rounded-circle position-absolute top-0 start-100 translate-middle" style={{ fontSize: '0.6rem' }}>0</span>
+                        <i className="fas fa-shopping-bag" style={{ fontSize: '1.2rem' }}></i>
+                        {cartCount > 0 && (
+                            <span className="cart-badge">
+                                {cartCount > 99 ? '99+' : cartCount}
+                            </span>
+                        )}
                     </Link>
                 </div>
             </div>
