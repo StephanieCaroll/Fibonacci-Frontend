@@ -15,6 +15,7 @@ function Profile() {
     const [countries, setCountries] = useState([]);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const [editName, setEditName] = useState('');
     const [editBio, setEditBio] = useState('');
@@ -128,18 +129,27 @@ function Profile() {
         }
     };
 
+    // Função para gerar imagem aleatória 
+    const getRandomArtImage = (width, height, seed) => {
+        // Usa o Lorem Picsum com seed aleatório baseado no timestamp + seed
+        const randomSeed = Math.random() * 1000000;
+        return `https://picsum.photos/seed/${seed || randomSeed}/${width}/${height}`;
+    };
+
     const getArtAvatar = () => {
-        const id = userInfo?.id || "default";
         if (tempAvatar) return tempAvatar;
-        if (userInfo?.avatar) return userInfo.avatar;
-        return `https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=400&h=400&q=80&sig=${id}`;
+        if (userInfo?.avatar && userInfo.avatar !== '') return userInfo.avatar;
+
+        const randomNum = Math.floor(Math.random() * 1000);
+        return `https://picsum.photos/id/${randomNum}/400/400`;
     };
 
     const getArtBanner = () => {
-        const id = userInfo?.id || "default";
         if (tempBanner) return tempBanner;
-        if (userInfo?.banner) return userInfo.banner;
-        return `https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=1200&h=400&q=80&sig=${id}`;
+        if (userInfo?.banner && userInfo.banner !== '') return userInfo.banner;
+       
+        const randomNum = Math.floor(Math.random() * 1000) + 100;
+        return `https://picsum.photos/id/${randomNum}/1200/400`;
     };
 
     const handleFileChange = (e, type) => {
@@ -195,7 +205,7 @@ function Profile() {
             setEditLocation(data.location || editLocation);
             
             setIsEditing(false);
-            alert("Perfil salvo com sucesso!");
+            setShowSuccessModal(true);
            
             await fetchUserProfile(token);
             const userId = updatedUser.id || updatedUser._id;
@@ -207,6 +217,10 @@ function Profile() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const closeSuccessModal = () => {
+        setShowSuccessModal(false);
     };
 
     const handleProductClick = (productId) => {
@@ -221,7 +235,10 @@ function Profile() {
 
             <div className={`profile-banner-container ${isEditing ? 'editing-active' : ''}`} 
                  onClick={() => isEditing && fileInputBanner.current.click()}>
-                <img src={getArtBanner()} alt="Banner" className="profile-banner" />
+                <img src={getArtBanner()} alt="Banner de Arte" className="profile-banner" 
+                     onError={(e) => {
+                         e.target.src = `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/1200/400`;
+                     }} />
                 {isEditing && (
                     <div className="banner-overlay-edit">
                         <i className="fas fa-camera"></i>
@@ -235,7 +252,10 @@ function Profile() {
                
                 <div className={`avatar-wrapper ${isEditing ? 'editing-active' : ''}`} 
                      onClick={() => isEditing && fileInputAvatar.current.click()}>
-                    <img src={getArtAvatar()} alt="Avatar" className="profile-avatar" />
+                    <img src={getArtAvatar()} alt="Avatar de Arte" className="profile-avatar"
+                         onError={(e) => {
+                             e.target.src = `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/400/400`;
+                         }} />
                     {isEditing && (
                         <div className="avatar-overlay-edit">
                             <i className="fas fa-pencil-alt"></i>
@@ -378,6 +398,21 @@ function Profile() {
                     </div>
                 </div>
             </div>
+
+            {showSuccessModal && (
+                <div className="custom-modal-overlay">
+                    <div className="custom-modal-content animate-pop-in">
+                        <div className="modal-icon-success">
+                            <i className="fas fa-check-circle"></i>
+                        </div>
+                        <h2>Perfil Atualizado!</h2>
+                        <p>Suas informações foram salvas com sucesso. Seu perfil agora reflete sua identidade artística.</p>
+                        <button className="btn-modal-confirm" onClick={closeSuccessModal}>
+                            Continuar
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
