@@ -12,6 +12,75 @@ function ArtistProfile() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const defaultArtAvatars = [
+        'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=400&h=400&q=80',
+        'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?auto=format&fit=crop&w=400&h=400&q=80',
+        'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=400&h=400&q=80',
+        'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=400&h=400&q=80',
+        'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?auto=format&fit=crop&w=400&h=400&q=80',
+        'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=400&h=400&q=80',
+        'https://images.unsplash.com/photo-1515405295579-ba7b45403062?auto=format&fit=crop&w=400&h=400&q=80',
+        'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?auto=format&fit=crop&w=400&h=400&q=80'
+    ];
+
+    const defaultArtBanners = [
+        'https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=1200&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200&h=400&q=80',
+        'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=1200&h=400&q=80',
+        'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=1200&h=400&q=80',
+        'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?auto=format&fit=crop&w=1200&h=400&q=80',
+        'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=1200&h=400&q=80'
+    ];
+
+    const getRandomDefaultImage = (artistId, type) => {
+       
+        const hash = artistId.toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        
+        if (type === 'avatar') {
+            const index = hash % defaultArtAvatars.length;
+            return defaultArtAvatars[index];
+        } else {
+            const index = hash % defaultArtBanners.length;
+            return defaultArtBanners[index];
+        }
+    };
+
+    const getArtAvatar = () => {
+        const avatar = artistInfo?.avatar;
+        
+        if (avatar && avatar !== '' && avatar !== null) {
+            if (avatar.startsWith('http')) {
+                return avatar;
+            } else {
+                return `http://127.0.0.1:8000${avatar}`;
+            }
+        }
+        
+        if (artistInfo?.id) {
+            return getRandomDefaultImage(artistInfo.id, 'avatar');
+        }
+        
+        return defaultArtAvatars[0];
+    };
+
+    const getArtBanner = () => {
+        const banner = artistInfo?.banner;
+        
+        if (banner && banner !== '' && banner !== null) {
+            if (banner.startsWith('http')) {
+                return banner;
+            } else {
+                return `http://127.0.0.1:8000${banner}`;
+            }
+        }
+        
+        if (artistInfo?.id) {
+            return getRandomDefaultImage(artistInfo.id, 'banner');
+        }
+      
+        return defaultArtBanners[0];
+    };
+
     useEffect(() => {
         const fetchArtistData = async () => {
             try {
@@ -89,20 +158,6 @@ function ArtistProfile() {
         history.push(`/product/${productId}`);
     };
 
-    const getArtAvatar = () => {
-        if (!artistInfo?.avatar) {
-            return `https://ui-avatars.com/api/?name=${encodeURIComponent(artistInfo?.name || 'Artista')}&background=5D4037&color=fff&size=150`;
-        }
-        return artistInfo.avatar.startsWith('http') ? artistInfo.avatar : `http://127.0.0.1:8000${artistInfo.avatar}`;
-    };
-
-    const getArtBanner = () => {
-        if (!artistInfo?.banner) {
-            return 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=1200&auto=format&fit=crop';
-        }
-        return artistInfo.banner.startsWith('http') ? artistInfo.banner : `http://127.0.0.1:8000${artistInfo.banner}`;
-    };
-
     if (loading) return <div className="profile-page"><div className="empty-state"><h3>Carregando perfil...</h3></div></div>;
     
     if (error) return (
@@ -123,12 +178,26 @@ function ArtistProfile() {
     return (
         <div className="profile-page animate-fade-in">
             <div className="profile-banner-container">
-                <img src={getArtBanner()} alt={`Banner de ${artistInfo.name}`} className="profile-banner" />
+                <img 
+                    src={getArtBanner()} 
+                    alt={`Banner de ${artistInfo.name}`} 
+                    className="profile-banner"
+                    onError={(e) => {
+                        e.target.src = defaultArtBanners[0];
+                    }}
+                />
             </div>
 
             <div className="profile-header-content">
                 <div className="avatar-wrapper">
-                    <img src={getArtAvatar()} alt={`Avatar de ${artistInfo.name}`} className="profile-avatar" />
+                    <img 
+                        src={getArtAvatar()} 
+                        alt={`Avatar de ${artistInfo.name}`} 
+                        className="profile-avatar"
+                        onError={(e) => {
+                            e.target.src = defaultArtAvatars[0];
+                        }}
+                    />
                 </div>
 
                 <div className="profile-info-section">
@@ -165,7 +234,7 @@ function ArtistProfile() {
                                                 alt={p.name} 
                                                 className="art-card-image"
                                                 onError={(e) => {
-                                                    e.target.src = 'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=400';
+                                                    e.target.src = defaultArtAvatars[0];
                                                 }}
                                             />
                                             <div className="art-card-overlay">

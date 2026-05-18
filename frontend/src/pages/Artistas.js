@@ -9,6 +9,67 @@ function Artistas() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const defaultArtAvatars = [
+        'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=150&h=150&q=80',
+        'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?auto=format&fit=crop&w=150&h=150&q=80',
+        'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=150&h=150&q=80',
+        'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=150&h=150&q=80',
+        'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?auto=format&fit=crop&w=150&h=150&q=80',
+        'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=150&h=150&q=80',
+        'https://images.unsplash.com/photo-1515405295579-ba7b45403062?auto=format&fit=crop&w=150&h=150&q=80',
+        'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?auto=format&fit=crop&w=150&h=150&q=80'
+    ];
+
+    const defaultArtBanners = [
+        'https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=800&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=800&h=400&q=80',
+        'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=800&h=400&q=80',
+        'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=800&h=400&q=80',
+        'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?auto=format&fit=crop&w=800&h=400&q=80',
+        'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=800&h=400&q=80'
+    ];
+
+    const getRandomDefaultImage = (artistId, type) => {
+       
+        const hash = artistId.toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        
+        if (type === 'avatar') {
+            const index = hash % defaultArtAvatars.length;
+            return defaultArtAvatars[index];
+        } else {
+            const index = hash % defaultArtBanners.length;
+            return defaultArtBanners[index];
+        }
+    };
+
+    const getProfileImage = (artist) => {
+        const profileImage = artist.profile?.profile_image;
+        
+        if (profileImage && profileImage !== '') {
+            if (profileImage.startsWith('http')) {
+                return profileImage;
+            } else {
+                return `http://127.0.0.1:8000${profileImage}`;
+            }
+        }
+      
+        return getRandomDefaultImage(artist.id, 'avatar');
+    };
+
+    const getBannerImage = (artist) => {
+        const bannerImage = artist.profile?.banner_image;
+        
+        if (bannerImage && bannerImage !== '') {
+            if (bannerImage.startsWith('http')) {
+                return bannerImage;
+            } else {
+                return `http://127.0.0.1:8000${bannerImage}`;
+            }
+        }
+       
+        return getRandomDefaultImage(artist.id, 'banner');
+    };
+
     useEffect(() => {
         const fetchArtists = async () => {
             try {
@@ -103,24 +164,24 @@ function Artistas() {
                                 
                                 <div className="card-image-container">
                                     <img 
-                                        src={artist.profile?.banner_image ? 
-                                            (artist.profile.banner_image.startsWith('http') ? 
-                                                artist.profile.banner_image : 
-                                                `http://127.0.0.1:8000${artist.profile.banner_image}`) : 
-                                            'https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=800&auto=format&fit=crop'} 
+                                        src={getBannerImage(artist)}
                                         alt={`Arte de ${artist.username}`} 
                                         className="card-banner-img"
+                                        onError={(e) => {
+                                            // Fallback se a imagem falhar
+                                            e.target.src = defaultArtBanners[0];
+                                        }}
                                     />
                                     <div className="card-overlay"></div>
                                     
                                     <img 
-                                        src={artist.profile?.profile_image ? 
-                                            (artist.profile.profile_image.startsWith('http') ? 
-                                                artist.profile.profile_image : 
-                                                `http://127.0.0.1:8000${artist.profile.profile_image}`) : 
-                                            `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.first_name || artist.username)}&background=111111&color=fff&size=150`} 
+                                        src={getProfileImage(artist)}
                                         alt={artist.username} 
                                         className="card-avatar-img"
+                                        onError={(e) => {
+                                            // Fallback se a imagem falhar
+                                            e.target.src = defaultArtAvatars[0];
+                                        }}
                                     />
                                 </div>
 

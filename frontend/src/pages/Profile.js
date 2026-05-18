@@ -23,6 +23,70 @@ function Profile() {
     const [tempAvatar, setTempAvatar] = useState(null);
     const [tempBanner, setTempBanner] = useState(null);
 
+    // Array de imagens padrão de arte (mais confiáveis)
+    const defaultArtAvatars = [
+        'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=400&h=400&q=80',
+        'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?auto=format&fit=crop&w=400&h=400&q=80',
+        'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=400&h=400&q=80',
+        'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=400&h=400&q=80',
+        'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?auto=format&fit=crop&w=400&h=400&q=80',
+        'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=400&h=400&q=80',
+        'https://images.unsplash.com/photo-1515405295579-ba7b45403062?auto=format&fit=crop&w=400&h=400&q=80',
+        'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?auto=format&fit=crop&w=400&h=400&q=80'
+    ];
+
+    const defaultArtBanners = [
+        'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=1200&h=400&q=80',
+        'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200&h=400&q=80',
+        'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=1200&h=400&q=80',
+        'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?auto=format&fit=crop&w=1200&h=400&q=80',
+        'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=1200&h=400&q=80'
+    ];
+
+    // Função para gerar imagem aleatória da lista
+    const getRandomDefaultImage = (type) => {
+        if (type === 'avatar') {
+            const randomIndex = Math.floor(Math.random() * defaultArtAvatars.length);
+            return defaultArtAvatars[randomIndex];
+        } else {
+            const randomIndex = Math.floor(Math.random() * defaultArtBanners.length);
+            return defaultArtBanners[randomIndex];
+        }
+    };
+
+    // Função para salvar imagens padrão no backend
+    const saveDefaultImagesToBackend = async (user, token) => {
+        try {
+            const avatarUrl = getRandomDefaultImage('avatar');
+            const bannerUrl = getRandomDefaultImage('banner');
+            
+            const config = {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            // Salvar as URLs no backend
+            await axios.put(
+                `http://127.0.0.1:8000/fibonacci/users/profile/update/`,
+                { avatar: avatarUrl, banner: bannerUrl },
+                config
+            );
+            
+            // Atualizar o usuário no localStorage
+            const updatedUser = { ...user, avatar: avatarUrl, banner: bannerUrl };
+            localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+            
+            console.log("Imagens padrão salvas no backend para:", user.name);
+            return updatedUser;
+            
+        } catch (error) {
+            console.error("Erro ao salvar imagens no backend:", error);
+            return user;
+        }
+    };
+
     useEffect(() => {
         
         axios.get('https://restcountries.com/v3.1/all?fields=name,translations')
@@ -37,13 +101,45 @@ function Profile() {
             history.push('/login');
         } else {
             const user = JSON.parse(storedUser);
-            setUserInfo(user);
-            setEditName(user.name || user.username || '');
-            setEditBio(user.bio || '');
-            setEditLocation(user.location || '');
-            setTempAvatar(user.avatar || null);
-            setTempBanner(user.banner || null);
-            fetchUserProducts(user.id || user._id, user.token || user.access);
+            
+            // Verificar se o usuário já tem imagens no backend
+            const checkAndSetDefaultImages = async () => {
+                let currentUser = user;
+                
+                // Se não tem avatar ou banner, buscar do backend ou gerar
+                if (!user.avatar || user.avatar === '' || !user.banner || user.banner === '') {
+                    try {
+                        // Tentar buscar o perfil atual do backend
+                        const config = { headers: { Authorization: `Bearer ${user.token || user.access}` } };
+                        const { data } = await axios.get(`http://127.0.0.1:8000/fibonacci/users/profile/`, config);
+                        
+                        // Se o backend não tem imagens, gerar e salvar
+                        if (!data.avatar || data.avatar === '' || !data.banner || data.banner === '') {
+                            const updatedUser = await saveDefaultImagesToBackend(user, user.token || user.access);
+                            currentUser = updatedUser;
+                        } else {
+                            // Usar as imagens do backend
+                            currentUser = { ...user, avatar: data.avatar, banner: data.banner };
+                            localStorage.setItem('userInfo', JSON.stringify(currentUser));
+                        }
+                    } catch (error) {
+                        console.error("Erro ao verificar perfil no backend:", error);
+                        // Se falhar, gerar e salvar mesmo assim
+                        const updatedUser = await saveDefaultImagesToBackend(user, user.token || user.access);
+                        currentUser = updatedUser;
+                    }
+                }
+                
+                setUserInfo(currentUser);
+                setEditName(currentUser.name || currentUser.username || '');
+                setEditBio(currentUser.bio || '');
+                setEditLocation(currentUser.location || '');
+                setTempAvatar(currentUser.avatar || null);
+                setTempBanner(currentUser.banner || null);
+                fetchUserProducts(currentUser.id || currentUser._id, currentUser.token || currentUser.access);
+            };
+            
+            checkAndSetDefaultImages();
         }
     }, [history]);
 
@@ -129,27 +225,18 @@ function Profile() {
         }
     };
 
-    // Função para gerar imagem aleatória 
-    const getRandomArtImage = (width, height, seed) => {
-        // Usa o Lorem Picsum com seed aleatório baseado no timestamp + seed
-        const randomSeed = Math.random() * 1000000;
-        return `https://picsum.photos/seed/${seed || randomSeed}/${width}/${height}`;
-    };
-
     const getArtAvatar = () => {
         if (tempAvatar) return tempAvatar;
         if (userInfo?.avatar && userInfo.avatar !== '') return userInfo.avatar;
-
-        const randomNum = Math.floor(Math.random() * 1000);
-        return `https://picsum.photos/id/${randomNum}/400/400`;
+        // Fallback: imagem padrão da lista
+        return defaultArtAvatars[0];
     };
 
     const getArtBanner = () => {
         if (tempBanner) return tempBanner;
         if (userInfo?.banner && userInfo.banner !== '') return userInfo.banner;
-       
-        const randomNum = Math.floor(Math.random() * 1000) + 100;
-        return `https://picsum.photos/id/${randomNum}/1200/400`;
+        // Fallback: imagem padrão da lista
+        return defaultArtBanners[0];
     };
 
     const handleFileChange = (e, type) => {
@@ -237,7 +324,7 @@ function Profile() {
                  onClick={() => isEditing && fileInputBanner.current.click()}>
                 <img src={getArtBanner()} alt="Banner de Arte" className="profile-banner" 
                      onError={(e) => {
-                         e.target.src = `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/1200/400`;
+                         e.target.src = defaultArtBanners[0];
                      }} />
                 {isEditing && (
                     <div className="banner-overlay-edit">
@@ -254,7 +341,7 @@ function Profile() {
                      onClick={() => isEditing && fileInputAvatar.current.click()}>
                     <img src={getArtAvatar()} alt="Avatar de Arte" className="profile-avatar"
                          onError={(e) => {
-                             e.target.src = `https://picsum.photos/id/${Math.floor(Math.random() * 1000)}/400/400`;
+                             e.target.src = defaultArtAvatars[0];
                          }} />
                     {isEditing && (
                         <div className="avatar-overlay-edit">
@@ -369,7 +456,7 @@ function Profile() {
                                             alt={p.name} 
                                             className="art-card-image"
                                             onError={(e) => {
-                                                e.target.src = 'https://via.placeholder.com/400x400?text=Sem+Imagem';
+                                                e.target.src = defaultArtAvatars[0];
                                             }}
                                         />
                                         <div className="art-card-overlay">
