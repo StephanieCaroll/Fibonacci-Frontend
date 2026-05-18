@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import '../styles/footer.css';
 
 function Footer() {
@@ -6,17 +7,18 @@ function Footer() {
         <>
             <section className="artist-invite">
                 <div className="container text-center">
-                    <h2 className="artist-title">Você é artista?</h2>
+                    <h2 className="artist-title">Conheça nossos Talentos</h2>
                     <p className="artist-description">
-                        Mostre seu trabalho para o mundo. Cadastre suas obras gratuitamente e conecte-se com amantes da arte que valorizam criações autênticas.
+                        Explore a diversidade de estilos e histórias por trás de cada obra. 
+                        Apoie artistas locais e descubra quem está moldando a cena artística regional.
                     </p>
-                    <button className="btn-artist-cta">
-                        Começar a vender 
-                        <svg className="arrow-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <Link to="/artistas" className="btn-artist-cta" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                        Ver todos os artistas
+                        <svg className="arrow-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginLeft: '8px' }}>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                             <polyline points="12 5 19 12 12 19"></polyline>
                         </svg>
-                    </button>
+                    </Link>
                 </div>
             </section>
 
@@ -32,8 +34,8 @@ function Footer() {
                         <div className="col-6 col-md-2 mb-4 mb-md-0">
                             <h6 className="footer-title">Navegação</h6>
                             <ul className="footer-links-list">
-                                <li><a href="/galeria">Galeria</a></li>
-                                <li><a href="/artistas">Artistas</a></li>
+                                <li><Link to="/galeria">Galeria</Link></li>
+                                <li><Link to="/artistas">Artistas</Link></li>
                             </ul>
                         </div>
                         <div className="col-6 col-md-2 mb-4 mb-md-0">
