@@ -96,13 +96,6 @@ Agradecemos às seguintes pessoas que contribuíram para este projeto:
       </a>
     </td>
 
-   <td align="center">
-      <a href="https://github.com/k1onehub" title="Kauã de Santana Torres">
-        <img src="https://github.com/k1onehub.png" width="100px;" alt="Foto do Kauã"/><br>
-        <sub><b>Kauã de Santana Torres Bandeira</b></sub>
-      </a>
-    </td>
-
   <td align="center">
       <a href="https://github.com/lucasand-dev1" title="Lucas Gabriel Santos">
         <img src="https://github.com/lucasand-dev1.png" width="100px;" alt="Foto do Lucas"/><br>
