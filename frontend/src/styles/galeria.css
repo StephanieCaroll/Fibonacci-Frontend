@@ -294,3 +294,149 @@
     .obra-img { height: 300px; }
     .filter-grid { grid-template-columns: 1fr; }
 }
+
+.skeleton-card {
+    background-color: #f8f7f4; 
+    border-radius: 12px;
+    padding: 15px;
+    height: 380px;
+    overflow: hidden;
+    position: relative;
+}
+
+.skeleton-img {
+    height: 220px;
+    width: 100%;
+    background: linear-gradient(90deg, #e0deda 25%, #f0eeea 50%, #e0deda 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 8px;
+}
+
+.skeleton-text {
+    height: 15px;
+    background: #e0deda;
+    margin-top: 15px;
+    border-radius: 4px;
+    width: 60%;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Garanta que o grid respeite o tamanho do card */
+.category-grid {
+    display: flex; 
+    gap: 20px; 
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+/* Forçar o tamanho do card */
+.category-card {
+    width: 300px !important; 
+    height: 400px !important; 
+    border-radius: 15px !important;
+    overflow: hidden !important;
+    position: relative !important;
+    cursor: pointer !important;
+    flex: 0 0 auto; /* Impede que o flexbox encolha o card */
+}
+
+.category-card img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important; 
+    display: block;
+}
+/* Container Principal */
+.category-container-main {
+    padding: 40px 0;
+    width: 100%;
+}
+
+.category-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+/* Wrapper do Carrossel com Scroll Snap */
+.category-carousel-wrapper {
+    display: flex;
+    gap: 25px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 20px;
+    -ms-overflow-style: none;  /* Esconde scrollbar no IE */
+    scrollbar-width: none;  /* Esconde scrollbar no Firefox */
+}
+
+.category-carousel-wrapper::-webkit-scrollbar {
+    display: none; /* Esconde scrollbar no Chrome/Safari */
+}
+
+/* Estilo do Card Grande (Igual à foto 2) */
+.category-post-card {
+    flex: 0 0 350px; /* Largura do Post */
+    height: 500px; /* Altura do Post */
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    scroll-snap-align: start;
+    cursor: pointer;
+    transition: transform 0.4s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.category-post-card:hover {
+    transform: scale(1.02);
+}
+
+.category-post-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Overlay Escuro com Texto Embaixo */
+.category-post-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+    display: flex;
+    align-items: flex-end;
+    padding: 30px;
+}
+
+.category-post-overlay h3 {
+    color: white !important;
+    font-size: 2.2rem;
+    margin: 0;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+}
+
+/* Botões de Navegação */
+.carousel-nav-buttons button {
+    background: white;
+    border: 1px solid #ddd;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.carousel-nav-buttons button:hover {
+    background: #5D4037;
+    color: white;
+}

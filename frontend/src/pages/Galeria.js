@@ -1,17 +1,24 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { Link, useHistory } from 'react-router-dom';
+import { Link, useHistory, useLocation } from 'react-router-dom';
 import '../styles/galeria.css';
+import CategorySection from '../components/CategorySection';
 
 function Galeria() {
     const history = useHistory();
+    const location = useLocation();
+    
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     
     const [searchTerm, setSearchTerm] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     
-    const [categoryFilter, setCategoryFilter] = useState('todas');
+    // Filtro inicial baseado na URL
+    const query = new URLSearchParams(location.search);
+    const catFromUrl = query.get('categoria') ? query.get('categoria').toLowerCase() : 'todas';
+    
+    const [categoryFilter, setCategoryFilter] = useState(catFromUrl);
     const [styleFilter, setStyleFilter] = useState('todos');
     const [priceFilter, setPriceFilter] = useState(Infinity);
     const [sortOrder, setSortOrder] = useState('recent');
@@ -99,6 +106,14 @@ function Galeria() {
             </section>
 
             <div className="container mt-5 mb-5">
+                {/* Componente integrado */}
+                <CategorySection 
+                    onSelectCategory={(catName) => {
+                        setCategoryFilter(catName);
+                        window.scrollTo({ top: 500, behavior: 'smooth' });
+                    }} 
+                />
+
                 <div className="search-wrapper-inline mb-4">
                     <div className="search-form-clean">
                         <div className="search-input-group">
@@ -165,12 +180,21 @@ function Galeria() {
                 )}
 
                 {loading ? (
-                    <div className="text-center py-5"><h5>Sincronizando acervo...</h5></div>
+                    <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+                        {[...Array(8)].map((_, i) => (
+                            <div className="col mb-4" key={i}>
+                                <div className="skeleton-card">
+                                    <div className="skeleton-img"></div>
+                                    <div className="skeleton-text"></div>
+                                    <div className="skeleton-text" style={{ width: '40%' }}></div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 ) : (
                     <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
                         {filteredProducts.map((product) => {
                             const isOutOfStock = (product.countInstock || 0) <= 0;
-
                             return (
                                 <div className="col mb-4" key={product.id || product._id}>
                                     <div 

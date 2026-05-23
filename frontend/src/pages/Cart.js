@@ -1,30 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useContext } from 'react'; // Adicionado useContext
 import { Link, useHistory } from 'react-router-dom';
 import axios from 'axios';
+import { CartContext } from '../context/CartContext'; // Importação do contexto
 import '../styles/cart.css';
 
 function Cart() {
     const history = useHistory();
-    const [cartItems, setCartItems] = useState([]);
+    // Substituindo o useState local pelo contexto:
+    const { cartItems, updateQuantity, removeFromCart, clearCart } = useContext(CartContext);
+    
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [showRemoveModal, setShowRemoveModal] = useState(false);
     const [itemToRemove, setItemToRemove] = useState(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [orderDetails, setOrderDetails] = useState(null);
 
-    useEffect(() => {
-        const savedCart = localStorage.getItem('cart');
-        if (savedCart) {
-            setCartItems(JSON.parse(savedCart));
-        }
-    }, []);
-
-    useEffect(() => {
-        localStorage.setItem('cart', JSON.stringify(cartItems));
-       
-        window.dispatchEvent(new Event('storage'));
-    }, [cartItems]);
-
+    // Funções mantidas com a lógica de negócio, mas usando métodos do contexto:
     const updateQty = (id, newQty) => {
         if (newQty < 1) return;
         const product = cartItems.find(item => (item._id || item.id) === id);
@@ -32,9 +23,7 @@ function Cart() {
             alert(`Estoque máximo disponível: ${product.countInstock} unidades`);
             return;
         }
-        setCartItems(cartItems.map(item => 
-            (item._id || item.id) === id ? { ...item, qty: newQty } : item
-        ));
+        updateQuantity(id, newQty); // Chamada do contexto
     };
 
     const openRemoveModal = (id, name) => {
@@ -44,7 +33,7 @@ function Cart() {
 
     const confirmRemove = () => {
         if (itemToRemove) {
-            setCartItems(cartItems.filter(item => (item._id || item.id) !== itemToRemove.id));
+            removeFromCart(itemToRemove.id); // Chamada do contexto
         }
         setShowRemoveModal(false);
         setItemToRemove(null);
@@ -112,9 +101,7 @@ function Cart() {
                 config
             );
 
-            localStorage.removeItem('cart');
-            setCartItems([]);
-            window.dispatchEvent(new Event('storage'));
+            clearCart(); // Limpeza via contexto
             
             setOrderDetails({
                 orderId: response.data._id || response.data.id,
@@ -145,6 +132,7 @@ function Cart() {
         history.push('/perfil');
     };
 
+    // Renderização mantida exatamente como o original:
     return (
         <div className="cart-page animate-fade-in">
             <div className="container">

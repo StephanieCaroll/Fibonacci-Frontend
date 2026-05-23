@@ -12,27 +12,30 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ProductDetail from './pages/ProductDetail';
 import ArtistProfile from './pages/ArtistProfile';
+import { CartProvider } from './context/CartContext'; // Importação corrigida
 
 function App() {
   return (
-    <Router>
-      <Header />
-      <main style={{ minHeight: '80vh' }}>
-        <Switch>
-          <Route exact path="/" component={Home} />
-          <Route path="/galeria" component={Galeria} />
-          <Route path="/perfil" component={Profile} />
-          <Route path="/artistas" component={Artistas} />
-          <Route path="/cart" component={Cart} />
-          <Route path="/adicionar-obra" component={AddArtwork} />
-          <Route path="/login" component={Login} />
-          <Route path="/cadastro" component={Register} />
-          <Route path="/product/:id" component={ProductDetail} />
-          <Route path="/artista/:id" component={ArtistProfile} />
-        </Switch>
-      </main>
-      <Footer />
-    </Router>
+    <CartProvider>
+      <Router>
+        <Header />
+        <main style={{ minHeight: '80vh' }}>
+          <Switch>
+            <Route exact path="/" component={Home} />
+            <Route path="/galeria" component={Galeria} />
+            <Route path="/perfil" component={Profile} />
+            <Route path="/artistas" component={Artistas} />
+            <Route path="/cart" component={Cart} />
+            <Route path="/adicionar-obra" component={AddArtwork} />
+            <Route path="/login" component={Login} />
+            <Route path="/cadastro" component={Register} />
+            <Route path="/product/:id" component={ProductDetail} />
+            <Route path="/artista/:id" component={ArtistProfile} />
+          </Switch>
+        </main>
+        <Footer />
+      </Router>
+    </CartProvider>
   );
 }
 

@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useParams, useHistory } from 'react-router-dom';
+import { CartContext } from '../context/CartContext';
 import '../styles/productDetail.css';
 
 function ProductDetail() {
     const { id } = useParams();
     const history = useHistory();
+    const { addToCart } = useContext(CartContext);
+    
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [imageError, setImageError] = useState(false);
@@ -112,30 +115,17 @@ function ProductDetail() {
 
         setIsAddingToCart(true);
 
-        const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
-        
-        const existingItemIndex = existingCart.findIndex(
-            item => (item._id || item.id) === (product._id || product.id)
-        );
-
-        if (existingItemIndex !== -1) {
-            existingCart[existingItemIndex].qty += quantity;
-        } else {
-            existingCart.push({
-                _id: product._id || product.id,
-                id: product._id || product.id,
-                name: product.name,
-                brand: product.brand || "Artista Local",
-                price: Number(product.price),
-                image: product.image,
-                qty: quantity,
-                countInstock: product.countInstock
-            });
-        }
-
-        localStorage.setItem('cart', JSON.stringify(existingCart));
-        
-        window.dispatchEvent(new Event('storage'));
+        // CHAMADA DO CONTEXTO:
+        addToCart({
+            _id: product._id || product.id,
+            id: product._id || product.id,
+            name: product.name,
+            brand: product.brand || "Artista Local",
+            price: Number(product.price),
+            image: product.image,
+            qty: quantity,
+            countInstock: product.countInstock
+        });
         
         const imageUrl = product.image && product.image.startsWith('http') 
             ? product.image 

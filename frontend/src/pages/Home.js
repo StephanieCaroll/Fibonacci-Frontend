@@ -2,9 +2,15 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link, useHistory } from 'react-router-dom';
 import '../styles/home.css';
+import HomeCarousel from '../components/HomeCarousel';
+import HomeBanner from '../components/HomeBanner'; 
+import ArtistSection from '../components/ArtistSection'; 
 
 function Home() {
-    const [products, setProducts] = useState([]);
+    const [featured, setFeatured] = useState([]);
+    const [paintings, setPaintings] = useState([]);
+    const [sculptures, setSculptures] = useState([]);
+    const [photography, setPhotography] = useState([]);
     const [loading, setLoading] = useState(true);
     const history = useHistory();
 
@@ -12,129 +18,101 @@ function Home() {
         let isMounted = true; 
 
         async function fetchProducts() {
+            setLoading(true);
             try {
-                const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-                const config = userInfo ? {
-                    headers: { Authorization: `Bearer ${userInfo.token || userInfo.access}` }
-                } : {};
-
-                const { data } = await axios.get('http://127.0.0.1:8000/fibonacci/products/', config);
-                
-                const productsData = data.products ? data.products : data;
-                const productsArray = Array.isArray(productsData) ? productsData : [];
-
-                const recentProducts = productsArray
-                    .sort((a, b) => (b.id || b._id) - (a.id || a._id))
-                    .slice(0, 4);
+                const [featRes, paintRes, sculpRes, photoRes] = await Promise.all([
+                    axios.get('http://127.0.0.1:8000/api/products/featured/'),
+                    axios.get('http://127.0.0.1:8000/api/products/category/Pintura/'),
+                    axios.get('http://127.0.0.1:8000/api/products/category/Escultura/'),
+                    axios.get('http://127.0.0.1:8000/api/products/category/Fotografia/')
+                ]);
 
                 if (isMounted) {
-                    setProducts(recentProducts);
+                    setFeatured(featRes.data);
+                    setPaintings(paintRes.data);
+                    setSculptures(sculpRes.data);
+                    setPhotography(photoRes.data);
                     setLoading(false);
                 }
             } catch (error) {
-                if (isMounted) {
-                    console.error("Erro ao carregar obras:", error);
-                    setLoading(false);
-                }
+                console.error("Erro ao carregar:", error);
+                if (isMounted) setLoading(false);
             }
         }
         
         fetchProducts();
-
-        return () => {
-            isMounted = false;
-        };
+        return () => { isMounted = false; };
     }, []);
 
-    const handleCardClick = (id) => {
-        history.push(`/product/${id}`);
-    };
+    const handleCardClick = (id) => { history.push(`/product/${id}`); };
 
-    const getCategoryDisplay = (product) => {
-        if (!product) return 'Arte';
+    const renderProducts = (productsArray) => {
+        if (!productsArray || productsArray.length === 0) return <p className="text-muted ml-3">Nenhuma obra nesta categoria.</p>;
         
-        let cat = 'Arte';
-        if (product.category_name) {
-            cat = product.category_name;
-        } else if (product.category && typeof product.category === 'object' && product.category.name) {
-            cat = product.category.name;
-        } else if (typeof product.category === 'string' && isNaN(Number(product.category))) {
-            cat = product.category;
-        }
-
-        const catString = String(cat);
-        if (catString.toLowerCase() === 'digital') return 'Arte Digital';
-        return catString;
+        return (
+            <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+                {productsArray.map((product) => (
+                    <div className="col mb-4" key={product.id || product._id}>
+                        <div className="card-obra" onClick={() => handleCardClick(product.id || product._id)} style={{ cursor: 'pointer' }}>
+                            <span className="badge-categoria text-uppercase">{product.category_name || 'Arte'}</span>
+                            <div className="img-container">
+                                {product.image && (
+                                    <img 
+                                        src={product.image.startsWith('http') ? product.image : `http://127.0.0.1:8000${product.image}`} 
+                                        className="obra-img" 
+                                        alt={product.name} 
+                                    />
+                                )}
+                            </div>
+                            <div className="pt-3">
+                                <h6 className="mb-0 font-weight-bold text-uppercase nome-obra">{product.name}</h6>
+                                <small className="text-muted artista-obra">{product.brand || 'Artista Independente'}</small>
+                                <div className="d-flex justify-content-between align-items-center mt-2">
+                                    <p className="font-weight-bold mb-0 price-text">R$ {product.price}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
     };
 
     return (
         <div className="home-page animate-fade-in">
-          
-            <header className="hero-wrapper">
-                <div className="container">
-                    <div className="row align-items-center">
-                        <div className="col-lg-6">
-                            <h1 className="hero-title">Arte Local,<br/>Alma Única.</h1>
-                            <p className="hero-text">
-                                Explore uma curadoria exclusiva de obras originais. Conectamos você ao talento de artistas locais com peças que contam histórias.
-                            </p>
-                            <Link to="/galeria" className="btn-fibonacci">Explorar Acervo</Link>
-                        </div>
-                        <div className="col-lg-6 d-none d-lg-block">
-                            <img 
-                                src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=1000&q=80" 
-                                className="hero-image" 
-                                alt="Destaque"
-                            />
-                        </div>
-                    </div>
-                </div>
-            </header>
+            <HomeCarousel />
 
             <main className="container pb-5">
-                <div className="section-header d-flex justify-content-between align-items-center mb-4">
-                    <h2 className="mb-0">Obras Recentes</h2>
-                    <Link to="/galeria" className="text-dark small font-weight-bold text-decoration-none">VER TUDO →</Link>
-                </div>
-
                 {loading ? (
-                    <div className="text-center py-5">
-                        <h5 className="text-muted">Carregando acervo...</h5>
-                    </div>
+                    <div className="text-center py-5"><h5>Carregando curadoria...</h5></div>
                 ) : (
-                    <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
-                        {products.map((product) => (
-                            <div className="col mb-4" key={product.id || product._id}>
-                                <div 
-                                    className="card-obra" 
-                                    onClick={() => handleCardClick(product.id || product._id)}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <span className="badge-categoria text-uppercase">
-                                        {getCategoryDisplay(product)}
-                                    </span>
-                                    
-                                    <div className="img-container">
-                                        <img 
-                                            src={product.image && product.image.startsWith('http') ? product.image : `http://127.0.0.1:8000${product.image}`} 
-                                            className="obra-img" 
-                                            alt={product.name} 
-                                        />
-                                    </div>
+                    <>
+                        <h2 className="mb-4">Destaques da Semana</h2>
+                        {renderProducts(featured)}
+                        
+                        <div className="d-flex justify-content-between align-items-center mb-4 mt-5">
+                            <h2 className="mb-0">Pinturas</h2>
+                            <Link to="/galeria?categoria=Pintura" className="text-dark font-weight-bold text-decoration-none">VER TUDO →</Link>
+                        </div>
+                        {renderProducts(paintings)}
+                        
+                        <div className="d-flex justify-content-between align-items-center mb-4 mt-5">
+                            <h2 className="mb-0">Esculturas</h2>
+                            <Link to="/galeria?categoria=Escultura" className="text-dark font-weight-bold text-decoration-none">VER TUDO →</Link>
+                        </div>
+                        {renderProducts(sculptures)}
 
-                                    <div className="pt-3">
-                                        <h6 className="mb-0 font-weight-bold text-uppercase nome-obra">{product.name}</h6>
-                                        <small className="text-muted artista-obra">{product.brand || 'Artista Independente'}</small>
-                                        <div className="d-flex justify-content-between align-items-center mt-2">
-                                            <p className="font-weight-bold mb-0 price-text">R$ {product.price}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                        <div className="d-flex justify-content-between align-items-center mb-4 mt-5">
+                            <h2 className="mb-0">Fotografia</h2>
+                            <Link to="/galeria?categoria=Fotografia" className="text-dark font-weight-bold text-decoration-none">VER TUDO →</Link>
+                        </div>
+                        {renderProducts(photography)}
+                    </>
                 )}
             </main>
+
+            <HomeBanner />
+            <ArtistSection /> {}
         </div>
     );
 }

@@ -1,29 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { CartContext } from '../context/CartContext';
+import '../styles/header.css'; // Supondo que você tenha o arquivo de estilo
 
 function Header() {
+    const { cartItems } = useContext(CartContext);
     const [cartCount, setCartCount] = useState(0);
     
     const userInfo = localStorage.getItem('userInfo');
 
+    // A lógica de cálculo agora reage diretamente ao cartItems do contexto
     const updateCartCount = () => {
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        const totalItems = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
+        const totalItems = cartItems.reduce((sum, item) => sum + (item.qty || 1), 0);
         setCartCount(totalItems);
     };
 
+    // Mantendo sua estrutura original com os useEffects
     useEffect(() => {
         updateCartCount();
         
         window.addEventListener('storage', updateCartCount);
-        
         const interval = setInterval(updateCartCount, 1000);
         
         return () => {
             window.removeEventListener('storage', updateCartCount);
             clearInterval(interval);
         };
-    }, []);
+    }, [cartItems]); // O cartItems garante a atualização imediata via contexto
 
     useEffect(() => {
         const handleFocus = () => updateCartCount();
