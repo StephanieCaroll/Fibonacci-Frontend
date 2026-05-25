@@ -1,0 +1,58 @@
+/* Navbar.css - Versão Corrigida */
+
+.navbar-container {
+    padding: 30px 0;
+    background: var(--white);
+    border-bottom: 1px solid var(--border-color);
+    position: relative; /* FUNDAMENTAL: Isso ancora o menu flutuante da Sidebar */
+    z-index: 1000;      /* Garante que a nav fique acima de outros elementos */
+}
+
+.navbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 40px;
+}
+
+.nav-links a {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--dark-gray);
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: var(--gold);
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-size: 1.2rem;
+    color: var(--dark-gray);
+}
+
+.nav-actions i {
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.nav-actions i:hover {
+    color: var(--gold);
+}

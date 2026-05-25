@@ -1,0 +1,29 @@
+.artists-section { padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
+
+.artists-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 40px; }
+.artists-header h2 { font-family: 'Playfair Display', serif; font-size: 2.5rem; }
+
+.artists-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; }
+
+.artist-card { 
+    background: #fff; 
+    border: 1px solid #f0f0f0; 
+    padding: 20px; 
+    display: flex; 
+    flex-direction: column; 
+    transition: 0.3s;
+}
+
+.artist-card:hover { border-color: #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+.artist-card img { 
+    width: 100%; height: 250px; 
+    object-fit: cover; 
+    filter: grayscale(100%); 
+    margin-bottom: 20px; 
+}
+
+.artist-card h3 { margin: 0 0 5px 0; font-size: 1.2rem; }
+.especialidade { color: #888; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 15px; }
+.bio { font-size: 0.9rem; color: #666; margin-bottom: 20px; flex-grow: 1; }
+.perfil-link { font-size: 0.75rem; font-weight: bold; text-decoration: underline; color: #000; }

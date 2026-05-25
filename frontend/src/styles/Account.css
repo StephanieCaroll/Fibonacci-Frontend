@@ -1,0 +1,145 @@
+.account-container { padding: 40px 0; }
+.account-title { font-family: 'Playfair Display', serif; margin-bottom: 30px; }
+
+.account-card {
+    background: #ffffff;
+    border: 1px solid #eaeaea;
+    border-radius: 12px;
+    padding: 30px;
+    height: 100%;
+}
+
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+.profile-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
+
+.profile-info { display: flex; gap: 20px; align-items: center; }
+
+.info-text p { margin: 0; color: #333; }
+.name { font-weight: bold; font-size: 1.2rem; }
+
+.edit-btn { background: none; border: 1px solid #ccc; border-radius: 50%; padding: 5px 10px; cursor: pointer; }
+
+.btn-alterar-foto { 
+    margin-top: 20px; background: transparent; border: 1px solid #ddd; 
+    padding: 8px 15px; border-radius: 20px; cursor: pointer;
+}
+
+.add-address-btn { 
+    background: none; border: none; color: #333; 
+    border-bottom: 1px solid #333; cursor: pointer; margin-top: 10px;
+}
+
+/* Fundo escuro que cobre a página toda */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Fundo semi-transparente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* O quadrado branco centralizado */
+.modal-content-boobam {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 500px;
+    max-width: 90%;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+/* Estilo para alinhar os campos lado a lado como na Boobam */
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.btn-save-boobam {
+    background: #ffdb00; /* Cor amarela estilo Boobam */
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+}
+
+.modal-content-boobam {
+    background: white;
+    padding: 40px;
+    border-radius: 20px; /* Bordas bem arredondadas */
+    width: 500px;
+    box-shadow: 0 10px 30px #60432e
+}
+
+.address-form input {
+    background-color: #f5f5f5; /* Fundo cinza bem suave */
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    width: 100%;
+    margin-top: 5px;
+    font-size: 14px;
+}
+
+.address-form label {
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.btn-save-boobam {
+    background: #60432e; /* Amarelo elegante */
+    color: #ffffff;
+    border: none;
+    padding: 12px 40px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+    float: right; /* Botão alinhado à direita igual a referência */
+}
+
+/* Para garantir o layout de grade */
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+.address-card-item {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.delete-btn {
+    background: #60432e;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}

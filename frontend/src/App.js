@@ -1,3 +1,5 @@
+// Componentes de rotas da nossa aplicação: Fibonacci
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import Header from './components/Header';
@@ -12,7 +14,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ProductDetail from './pages/ProductDetail';
 import ArtistProfile from './pages/ArtistProfile';
-import { CartProvider } from './context/CartContext'; // Importação corrigida
+import { CartProvider } from './context/CartContext'; 
+import Account from './pages/Account'; 
 
 function App() {
   return (
@@ -24,6 +27,7 @@ function App() {
             <Route exact path="/" component={Home} />
             <Route path="/galeria" component={Galeria} />
             <Route path="/perfil" component={Profile} />
+            <Route path="/minha-conta" component={Account} />
             <Route path="/artistas" component={Artistas} />
             <Route path="/cart" component={Cart} />
             <Route path="/adicionar-obra" component={AddArtwork} />

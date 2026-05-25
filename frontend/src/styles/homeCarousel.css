@@ -29,3 +29,162 @@
 .carousel-caption h1 {
   font-family: 'Playfair Display', serif;
 }
+/* homeCarousel.css - Versão Premium */
+
+.home-carousel-premium {
+    min-height: 80vh;
+}
+
+.home-carousel-premium .carousel-inner {
+    background-color: var(--light-gray);
+    overflow: hidden;
+}
+
+.hero-split-premium {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr; /* Imagem ligeiramente maior que o texto */
+    align-items: center;
+    min-height: 80vh;
+}
+
+/* --- LADO DO TEXTO --- */
+.hero-text-side-premium {
+    padding: 60px 120px; /* Padding generoso nas laterais */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.premium-overline {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 4px; /* Grande espaçamento */
+    color: var(--dark-gray);
+    display: block;
+    margin-bottom: 25px;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+/* Linha fina abaixo do overline (detalhe) */
+.premium-overline::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 30px;
+    height: 1px;
+    background-color: var(--gold);
+}
+
+.premium-title {
+    font-family: var(--font-heading);
+    font-size: 4.8rem; /* Título grande */
+    line-height: 1.05;
+    margin-bottom: 25px;
+    color: var(--dark);
+    font-weight: 400;
+}
+
+.premium-italic {
+    font-family: var(--font-heading);
+    font-style: italic; /* O segredo do luxo */
+    color: var(--gold);
+    font-weight: 400;
+}
+
+.premium-description {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--dark-gray);
+    max-width: 420px; /* Evita que o parágrafo fique muito largo */
+    line-height: 1.7;
+    margin-bottom: 50px;
+    font-weight: 300;
+}
+
+/* --- BOTÃO --- */
+.premium-btn {
+    text-decoration: none;
+    color: var(--dark);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    display: inline-block;
+    padding: 0 0 10px 0;
+    position: relative;
+    transition: color 0.4s ease;
+    width: fit-content;
+}
+
+.premium-btn:hover {
+    color: var(--gold);
+}
+
+/* Linha inferior no hover do botão */
+.premium-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0%; /* Inicialmente oculta */
+    height: 1px;
+    background-color: var(--gold);
+    transition: width 0.4s ease;
+}
+
+.premium-btn:hover::after {
+    width: 100%;
+}
+
+/* --- CONTADOR --- */
+.premium-slide-counter {
+    position: absolute;
+    bottom: 40px;
+    left: 120px; /* Alinhado com o padding do texto */
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    color: var(--dark-gray);
+    letter-spacing: 2px;
+    font-weight: 300;
+}
+
+/* --- LADO DA IMAGEM --- */
+.hero-image-side-premium img {
+    width: 100%;
+    height: 80vh;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* --- TRANSITIONS --- */
+.home-carousel-premium.carousel-fade .carousel-item {
+    transition: opacity 1.5s ease-in-out; /* Transição fade mais suave */
+}
+
+/* --- RESPONSIVIDADE (MOBILE) --- */
+@media (max-width: 992px) {
+    .hero-text-side-premium { padding: 80px 40px; }
+    .premium-title { font-size: 3.5rem; }
+}
+
+@media (max-width: 768px) {
+    .hero-split-premium { grid-template-columns: 1fr; }
+    .hero-image-side-premium img { height: 40vh; }
+    .hero-text-side-premium { 
+        padding: 40px 24px 80px 24px; 
+        align-items: center; 
+        text-align: center; 
+    }
+    .premium-title { font-size: 2.8rem; }
+    .premium-description { max-width: 100%; }
+    .premium-slide-counter { 
+        left: 50%; 
+        transform: translateX(-50%); 
+        bottom: 20px; 
+    }
+    .premium-overline::after { left: 50%; transform: translateX(-50%); }
+}

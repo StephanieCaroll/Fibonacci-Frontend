@@ -4,10 +4,14 @@ import { useParams, useHistory } from 'react-router-dom';
 import { CartContext } from '../context/CartContext';
 import '../styles/productDetail.css';
 
+
 function ProductDetail() {
     const { id } = useParams();
     const history = useHistory();
     const { addToCart } = useContext(CartContext);
+    const [rating, setRating] = useState(0);
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [comment, setComment] = useState(''); 
     
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -199,6 +203,25 @@ function ProductDetail() {
     };
 
     const stockStatus = getStockStatus();
+    const submitReviewHandler = async (e) => {
+        e.preventDefault();
+        try {
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${userInfo.access || userInfo.token}`
+                }
+            };
+            await axios.post(`http://127.0.0.1:8000/fibonacci/products/${id}/reviews/`, { rating, comment }, config);
+            alert('Avaliação enviada com sucesso!');
+            setShowReviewModal(false);
+            window.location.reload(); 
+        } catch (error) {
+            alert('Erro ao enviar a avaliação. Verifique se você já avaliou esta obra');
+
+        }
+    };
+    
 
     return (
         <div className="product-detail-container animate-fade-in">
@@ -275,7 +298,7 @@ function ProductDetail() {
                             {reviews.length === 0 && ' (Sem avaliações ainda)'}
                         </span>
                     </div>
-
+                    
                     {reviews.length > 0 && (
                         <div className="reviews-summary">
                             {reviews.slice(0, 2).map((review, index) => (
@@ -383,9 +406,11 @@ function ProductDetail() {
                 </div>
             </div>
 
+            {/* Modal de confirmação de Carrinho */}
             {showCartModal && addedProduct && (
                 <div className="cart-modal-overlay">
                     <div className="cart-modal-content animate-pop-in">
+                        {/* ... (todo o conteúdo original do seu modal de carrinho) ... */}
                         <div className="cart-modal-icon">
                             <div className="cart-success-animation">
                                 <svg className="cart-checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
@@ -394,33 +419,22 @@ function ProductDetail() {
                                 </svg>
                             </div>
                         </div>
-                        
                         <h2 className="cart-modal-title">Adicionado ao Carrinho</h2>
-                        
                         <div className="cart-art-preview">
-                            <img 
-                                src={addedProduct.image} 
-                                alt={addedProduct.name}
-                                className="cart-art-image"
-                            />
+                            <img src={addedProduct.image} alt={addedProduct.name} className="cart-art-image" />
                             <div className="cart-art-info">
                                 <h3 className="cart-art-name">{addedProduct.name}</h3>
                                 <p className="cart-art-artist">{addedProduct.artist}</p>
                                 <div className="cart-art-details">
                                     <span><i className="fas fa-cube"></i> Quantidade: {addedProduct.quantity}</span>
-                                    <span><i className="fas fa-tag"></i> {addedProduct.price.toLocaleString('pt-BR', { 
-                                        style: 'currency', 
-                                        currency: 'BRL' 
-                                    })}</span>
+                                    <span><i className="fas fa-tag"></i> {addedProduct.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                                 </div>
                             </div>
                         </div>
-                        
                         <div className="cart-message">
                             <p><i className="fas fa-check-circle"></i> A obra foi adicionada ao seu carrinho!</p>
                             <p className="cart-submessage">Você pode continuar comprando ou finalizar seu pedido agora.</p>
                         </div>
-                        
                         <div className="cart-buttons">
                             <button className="cart-btn-primary" onClick={() => closeCartModal(true)}>
                                 <i className="fas fa-shopping-cart"></i> Ver Carrinho
@@ -432,8 +446,32 @@ function ProductDetail() {
                     </div>
                 </div>
             )}
-        </div>
+
+            {/* Modal de Avaliação (Novo) */}
+            {showReviewModal && (
+                <div className="review-modal-overlay">
+                    <div className="review-modal-content">
+                        <h3>Avaliar Obra</h3>
+                        <form onSubmit={submitReviewHandler}>
+                            <label>Nota:</label>
+                            <select value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+                                <option value={0}>Selecione...</option>
+                                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Estrelas</option>)}
+                            </select>
+                            <label>Comentário:</label>
+                            <textarea value={comment} onChange={(e) => setComment(e.target.value)} required />
+                            <div className="modal-buttons">
+                                <button type="submit">Enviar Avaliação</button>
+                                <button type="button" onClick={() => setShowReviewModal(false)}>Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+        </div> // Esta é a última div do return
     );
 }
 
 export default ProductDetail;
+

@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useHistory, Link } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/profile.css';
+ 
 
-function Profile() {
+ function Profile() {
     const history = useHistory();
     const fileInputAvatar = useRef(null);
     const fileInputBanner = useRef(null);
@@ -140,9 +141,8 @@ function Profile() {
                 headers: { 
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                } 
+                }
             };
-            
             const response = await axios.get(`http://127.0.0.1:8000/fibonacci/products/`, config);
             
             let productsArray = [];
@@ -156,7 +156,7 @@ function Profile() {
             } else if (response.data.data && Array.isArray(response.data.data)) {
                 productsArray = response.data.data;
             }
-            
+
             const filteredProducts = productsArray.filter(product => {
                 if (product.user) {
                     if (typeof product.user === 'object') {
@@ -185,6 +185,10 @@ function Profile() {
             
         } catch (e) {
             console.error("Erro ao carregar obras:", e);
+            if (e.response && e.response.status === 401) {
+                localStorage.removeItem('userInfo');
+                history.push('/login');
+            }
             setUserProducts([]);
         } finally {
             setRefreshing(false);
@@ -192,15 +196,25 @@ function Profile() {
     };
 
     const fetchUserOrders = async (token) => {
-        try {
-            const config = { headers: { Authorization: `Bearer ${token}` } };
-            const { data } = await axios.get('http://127.0.0.1:8000/fibonacci/orders/myorders/', config);
-            console.log('📦 Pedidos recebidos do backend:', data);
-            setUserOrders(data);
-        } catch (error) {
-            console.error("Erro ao carregar compras:", error);
+    try {
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const { data } = await axios.get('http://127.0.0.1:8000/fibonacci/orders/myorders/', config);
+        
+        console.log('📦 Pedidos recebidos do backend:', data);
+        setUserOrders(data);
+    } catch (error) {
+        console.error("Erro ao carregar compras:", error);
+
+    
+        if (error.response && error.response.status === 401) {
+            console.warn("Sessão expirada. Redirecionando para login...");
+            
+            localStorage.removeItem('userInfo');
+          
+            history.push('/login');
         }
-    };
+    }
+};
 
     const fetchUserProfile = async (token) => {
         try {
@@ -297,6 +311,10 @@ function Profile() {
             
         } catch (error) {
             console.error("Erro ao salvar perfil:", error);
+            if (error.response && error.response.status === 401) {
+                localStorage.removeItem('userInfo');
+                history.push('/login');
+            }
             alert(`Erro ao salvar alterações: ${error.response?.data?.detail || error.message}`);
         } finally {
             setLoading(false);

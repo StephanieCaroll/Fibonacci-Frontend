@@ -64,6 +64,18 @@ function Galeria() {
         return catString;
     };
 
+    const addToCart = async (product) => {
+    try {
+        // Exemplo: chamando sua API ou atualizando o estado global do carrinho
+        // await axios.post('http://127.0.0.1:8000/api/cart/', { product_id: product.id, quantity: 1 });
+        
+        alert(`${product.name} adicionado ao carrinho!`);
+        // Aqui você pode disparar um evento para abrir um modal de sucesso se desejar
+    } catch (error) {
+        console.error("Erro ao adicionar ao carrinho:", error);
+    }
+};
+
     const getGenreFromDesc = (desc) => {
         if (!desc) return '';
         const match = desc.match(/Gênero:\s*([^.]+)/i);
@@ -218,14 +230,55 @@ function Galeria() {
                                                 alt={product.name} 
                                             />
                                         </div>
-
                                         <div className="pt-3">
-                                            <h6 className="mb-0 font-weight-bold text-uppercase nome-obra">{product.name}</h6>
-                                            <small className="text-muted artista-obra">{product.brand}</small>
-                                            <div className="mt-2">
+                                            <h6 className="mb-0 font-weight-bold text-uppercase nome-obra">
+                                                {product.name}
+                                            </h6>
+                                            <small className="text-muted artista-obra">
+                                                {product.brand}
+                                            </small>
+                                            <button
+                                            className="btn-add-mini"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                addToCart(product);
+                                                }}
+                                                ></button>
+                                            
+                                            {}
+                                            <div 
+                                                className="price-and-action-container" 
+                                                style={{ 
+                                                    display: 'flex', 
+                                                    justifyContent: 'space-between', 
+                                                    alignItems: 'center', 
+                                                    marginTop: '10px' 
+                                                }}
+                                            >
                                                 <p className="font-weight-bold mb-0 price-text">
                                                     {isOutOfStock ? 'Indisponível' : `R$ ${product.price}`}
                                                 </p>
+                                                
+                                                {!isOutOfStock && (
+                                                    <button 
+                                                        className="btn-add-mini" 
+                                                        onClick={(e) => {
+                                                            e.stopPropagation(); 
+                                                        }}
+                                                        style={{
+                                                            background: '#f8f9fa',
+                                                            border: '1px solid #ddd',
+                                                            width: '35px',
+                                                            height: '35px',
+                                                            cursor: 'pointer',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center'
+                                                        }}
+                                                    >
+                                                        +
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -240,3 +293,5 @@ function Galeria() {
 }
 
 export default Galeria;
+
+
