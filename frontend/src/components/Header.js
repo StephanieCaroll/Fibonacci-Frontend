@@ -62,7 +62,6 @@ function Header() {
                     <li><Link to="/" onClick={closeMobileMenu}>INÍCIO</Link></li>
                     <li><Link to="/galeria" onClick={closeMobileMenu}>GALERIA</Link></li>
                     <li><Link to="/artistas" onClick={closeMobileMenu}>ARTISTAS</Link></li>
-                    <li><Link to="/sobre" onClick={closeMobileMenu}>SOBRE</Link></li>
                 </ul>
 
                 <div className="nav-actions">

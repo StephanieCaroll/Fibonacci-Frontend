@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import '../styles/home.css';
 
-// Importação dos componentes organizados
 import HomeCarousel from '../components/HomeCarousel';
 import CategorySection from '../components/CategorySection';
 import Destaques from '../components/Destaques';
-import HomeBanner from '../components/HomeBanner'; 
-import ArtistSection from '../components/ArtistSection'; 
 import Artists from '../components/Artists';
 
 function Home() {
@@ -15,12 +13,11 @@ function Home() {
     const [paintings, setPaintings] = useState([]);
     const [sculptures, setSculptures] = useState([]);
     const [photography, setPhotography] = useState([]);
-    const [artists, setArtists] = useState([]); // Novo estado para artistas
+    const [artists, setArtists] = useState([]); 
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         let isMounted = true; 
-
         async function fetchProducts() {
             setLoading(true);
             try {
@@ -29,7 +26,7 @@ function Home() {
                     axios.get('http://127.0.0.1:8000/api/products/category/Pintura/'),
                     axios.get('http://127.0.0.1:8000/api/products/category/Escultura/'),
                     axios.get('http://127.0.0.1:8000/api/products/category/Fotografia/'),
-                    axios.get('http://127.0.0.1:8000/api/artists/') // Nova chamada da API
+                    axios.get('http://127.0.0.1:8000/api/artists/') 
                 ]);
 
                 if (isMounted) {
@@ -37,7 +34,7 @@ function Home() {
                     setPaintings(paintRes.data);
                     setSculptures(sculpRes.data);
                     setPhotography(photoRes.data);
-                    setArtists(artistsRes.data); // Armazena os artistas
+                    setArtists(artistsRes.data); 
                     setLoading(false);
                 }
             } catch (error) {
@@ -45,57 +42,43 @@ function Home() {
                 if (isMounted) setLoading(false);
             }
         }
-        
         fetchProducts();
         return () => { isMounted = false; };
     }, []);
 
     return (
         <div className="home-page animate-fade-in">
-            {/* Banner Principal em Carrossel */}
             <HomeCarousel />
+            <CategorySection />
 
-            {/* Navegação Rápida por Categorias */}
-            <CategorySection onSelectCategory={catName => window.location.href = `/galeria?categoria=${catName}`} />
-
-            {/* Vitrine de Produtos (Destaques e Categorias) */}
-            <main className="container pb-5">
+            <main className="container pb-5 mt-4">
                 {loading ? (
-                    <div className="text-center py-5">
-                        <h5>Carregando curadoria...</h5>
-                    </div>
+                    <div className="text-center py-5"><h5>A carregar curadoria...</h5></div>
                 ) : (
                     <>
-                        <Destaques produtos={featured} title="Destaques da Semana" link="/galeria" />
-                        
-                        <Destaques 
-                            produtos={paintings} 
-                            title="Pinturas" 
-                            link="/galeria?categoria=Pintura" 
-                        />
-                        
-                        <Destaques 
-                            produtos={sculptures} 
-                            title="Esculturas" 
-                            link="/galeria?categoria=Escultura" 
-                        />
-                        
-                        <Destaques 
-                            produtos={photography} 
-                            title="Fotografia" 
-                            link="/galeria?categoria=Fotografia" 
-                        />
+                        <div className="section-spacing"><Destaques produtos={featured} title="Destaques da Semana" link="/galeria" /></div>
+                        <div className="section-spacing"><Destaques produtos={paintings} title="Pinturas" link="/galeria?categoria=Pintura" /></div>
+                        <div className="section-spacing"><Destaques produtos={sculptures} title="Esculturas" link="/galeria?categoria=Escultura" /></div>
+                        <div className="section-spacing"><Destaques produtos={photography} title="Fotografia" link="/galeria?categoria=Fotografia" /></div>
                     </>
                 )}
             </main>
 
-            {/* Seção de Destaque Editorial */}
-            <HomeBanner />
+            {/* Nova classe de controle para evitar o espaçamento gigante */}
+            <div className="artists-section-wrapper">
+                <Artists artists={artists} /> 
+            </div>
             
-            {/* Seção de Artistas */}
-            <Artists artists={artists} /> {/* Componente Artists integrado */}
-            
-            <ArtistSection />
+            <div className="editorial-banner-wrapper container mt-5 mb-5">
+                <div className="editorial-banner-custom">
+                    <div className="editorial-content-custom">
+                        <span className="editorial-label-custom">EDITORIAL</span>
+                        <h2 className="editorial-title-custom">A arte transforma<br/>espaços. E pessoas.</h2>
+                        <p className="editorial-desc-custom">Leia o nosso editorial sobre arte,<br/>curadoria e criação local.</p>
+                        <Link to="/" className="editorial-link-custom">LER EDITORIAL <span className="arrow">→</span></Link>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
