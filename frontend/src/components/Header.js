@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { CartContext } from '../context/CartContext';
 import Sidebar from '../components/Sidebar'; 
@@ -8,14 +8,15 @@ function Header() {
     const { cartItems } = useContext(CartContext);
     const [cartCount, setCartCount] = useState(0);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     
     const userInfoString = localStorage.getItem('userInfo');
     const userInfo = userInfoString ? JSON.parse(userInfoString) : null;
 
-    const updateCartCount = () => {
+    const updateCartCount = useCallback(() => {
         const totalItems = cartItems.reduce((sum, item) => sum + (item.qty || 1), 0);
         setCartCount(totalItems);
-    };
+    }, [cartItems]);
 
     useEffect(() => {
         updateCartCount();
@@ -25,22 +26,45 @@ function Header() {
             window.removeEventListener('storage', updateCartCount);
             clearInterval(interval);
         };
-    }, [cartItems]);
+    }, [updateCartCount]);
+
+    const closeMobileMenu = () => {
+        setIsMobileMenuOpen(false);
+    };
 
     return (
         <nav className="navbar-container">
             <div className="container-custom navbar-content">
-                {/* Logo */}
-                <Link to="/" className="logo">FIBONACCI</Link>
                 
-                {/* Links de navegação */}
-                <ul className="nav-links">
-                    <li><Link to="/">Início</Link></li>
-                    <li><Link to="/galeria">Galeria</Link></li>
-                    <li><Link to="/artistas">Artistas</Link></li>
+                <button 
+                    className="mobile-menu-btn" 
+                    onClick={() => setIsMobileMenuOpen(true)}
+                >
+                    <i className="fas fa-bars"></i>
+                </button>
+
+                
+                <Link to="/" className="logo" onClick={closeMobileMenu}>FIBONACCI</Link>
+               
+                <div 
+                    className={`mobile-menu-overlay ${isMobileMenuOpen ? 'open' : ''}`} 
+                    onClick={closeMobileMenu}
+                ></div>
+
+                <ul className={`nav-links ${isMobileMenuOpen ? 'open' : ''}`}>
+                    <div className="mobile-nav-header">
+                        <span className="logo-mobile">MENU</span>
+                        <button className="mobile-close-btn" onClick={closeMobileMenu}>
+                            <i className="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <li><Link to="/" onClick={closeMobileMenu}>INÍCIO</Link></li>
+                    <li><Link to="/galeria" onClick={closeMobileMenu}>GALERIA</Link></li>
+                    <li><Link to="/artistas" onClick={closeMobileMenu}>ARTISTAS</Link></li>
+                    <li><Link to="/sobre" onClick={closeMobileMenu}>SOBRE</Link></li>
                 </ul>
 
-                {/* Ações (Busca, User, Cart) */}
                 <div className="nav-actions">
                     <Link to="/galeria" className="nav-icon"><i className="fas fa-search"></i></Link>
                     

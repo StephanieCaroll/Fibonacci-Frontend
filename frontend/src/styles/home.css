@@ -1,3 +1,4 @@
+home.css
 :root {
     --text-primary: #1A1A1A;
     --text-muted: #666666;
@@ -134,7 +135,6 @@ body {
 .home-hero-banner {
     width: 100%;
     height: 450px;
-    /* Substitua a URL abaixo pela imagem que você deseja usar */
     background: url('https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=2000') no-repeat center center;
     background-size: cover;
     position: relative;
@@ -151,7 +151,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.35); /* Escurecimento leve para o texto destacar */
+    background: rgba(0, 0, 0, 0.35);
 }
 
 .banner-content {
@@ -196,16 +196,6 @@ body {
     background: #fdf9f3;
 }
 
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
 .artist-carousel {
     display: flex;
     gap: 20px;
@@ -243,4 +233,243 @@ body {
 .artist-overlay h3 {
     color: white;
     font-size: 1.5rem;
+}
+
+.editorial-banner-wrapper {
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+}
+
+.editorial-banner-custom {
+    background-color: #1a1a1a;
+    background-image: linear-gradient(to right, rgba(20, 20, 20, 1) 0%, rgba(20, 20, 20, 0.9) 35%, rgba(20, 20, 20, 0.2) 70%, transparent 100%), 
+                      url('https://images.unsplash.com/photo-1574169208507-84376144848b?q=80&w=2000');
+    background-position: center right;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-radius: 6px;
+    padding: 70px 60px;
+    display: flex;
+    align-items: center;
+    min-height: 380px;
+    position: relative;
+    overflow: hidden;
+}
+
+.editorial-content-custom {
+    max-width: 450px;
+    position: relative;
+    z-index: 2;
+}
+
+.editorial-label-custom {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #999999;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 25px;
+}
+
+.editorial-title-custom {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    color: #ffffff;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+
+.editorial-desc-custom {
+    font-size: 0.95rem;
+    color: #b3b3b3;
+    line-height: 1.6;
+    margin-bottom: 35px;
+}
+
+.editorial-link-custom {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-decoration: none;
+    letter-spacing: 1.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+}
+
+.editorial-link-custom:hover {
+    color: #d4b896;
+    text-decoration: none;
+}
+
+.editorial-link-custom .arrow {
+    font-size: 1.2rem;
+    font-weight: 400;
+    transition: transform 0.3s ease;
+}
+
+.editorial-link-custom:hover .arrow {
+    transform: translateX(5px);
+}
+
+@media (max-width: 768px) {
+    .editorial-banner-custom {
+        background-image: linear-gradient(to right, rgba(20, 20, 20, 0.98) 0%, rgba(20, 20, 20, 0.85) 100%), 
+                          url('https://images.unsplash.com/photo-1574169208507-84376144848b?q=80&w=2000');
+        padding: 40px 30px;
+        min-height: auto;
+    }
+    
+    .editorial-title-custom {
+        font-size: 2.2rem;
+    }
+}
+
+
+.artists-evidencia-container {
+    padding: 0 15px;
+}
+
+.artists-evidencia-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.artists-evidencia-header h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin: 0;
+    color: #1a1a1a;
+}
+
+.link-ver-todos {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #1a1a1a;
+    text-decoration: none;
+    letter-spacing: 1px;
+    transition: opacity 0.3s;
+}
+
+.link-ver-todos:hover {
+    opacity: 0.7;
+    text-decoration: none;
+    color: #1a1a1a;
+}
+
+.artists-evidencia-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.artist-evidencia-card {
+    display: flex;
+    flex-direction: column;
+    background-color: #FAFAFA;
+    border: 1px solid #EEEEEE;
+    border-radius: 8px; 
+    overflow: hidden; 
+}
+
+.artist-img-wrapper {
+    width: 100%;
+    aspect-ratio: 5 / 4; 
+    background-color: #e0e0e0;
+}
+
+.artist-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%); 
+    transition: transform 0.5s ease;
+}
+
+.artist-evidencia-card:hover .artist-img-wrapper img {
+    transform: scale(1.03);
+}
+
+.artist-info {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; 
+}
+
+.artist-info h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 3px 0;
+    color: #1a1a1a;
+}
+
+.artist-info .artist-role {
+    font-size: 0.8rem;
+    color: #C89B7B;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.artist-info .artist-desc {
+    font-size: 0.85rem;
+    color: #666666;
+    line-height: 1.5;
+    margin-bottom: 25px;
+    flex-grow: 1;
+}
+
+.link-ver-perfil {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #1a1a1a;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    transition: opacity 0.3s;
+}
+
+.link-ver-perfil:hover {
+    opacity: 0.7;
+    text-decoration: none;
+    color: #1a1a1a;
+}
+
+.no-image-placeholder {
+    width: 100%;
+    height: 100%;
+    background-color: #e0e0e0;
+}
+
+.section-spacing {
+    margin-top: 40px; 
+    margin-bottom: 40px; 
+}
+
+.artists-section-wrapper {
+    margin-top: 20px; 
+    margin-bottom: 20px;
+    padding: 0 15px;
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    .artists-evidencia-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .artists-evidencia-grid {
+        grid-template-columns: 1fr;
+    }
 }

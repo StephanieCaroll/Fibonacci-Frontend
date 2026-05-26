@@ -56,7 +56,7 @@ function Home() {
             <HomeCarousel />
 
             {/* Navegação Rápida por Categorias */}
-            <CategorySection />
+            <CategorySection onSelectCategory={catName => window.location.href = `/galeria?categoria=${catName}`} />
 
             {/* Vitrine de Produtos (Destaques e Categorias) */}
             <main className="container pb-5">

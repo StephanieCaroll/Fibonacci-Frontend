@@ -12,8 +12,8 @@ function Destaques({ produtos, title, link }) {
       </div>
 
       <div className="product-grid">
-        {produtos.map((produto) => (
-          <div key={produto.id} className="product-card">
+        {produtos.map((produto, idx) => (
+          <div key={produto.id || idx} className="product-card">
             <div className="image-wrapper">
               <img 
                 src={produto.image ? (produto.image.startsWith('http') ? produto.image : `http://127.0.0.1:8000${produto.image}`) : ''} 

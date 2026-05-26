@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import '../styles/Sidebar.css';
 import { useHistory } from 'react-router-dom';
-import { FaUser, FaUserEdit, FaHeart, FaShoppingBag, FaBell, FaSignOutAlt, FaTimes } from 'react-icons/fa';
+import { FaUser, FaUserEdit, FaShoppingBag, FaSignOutAlt, FaTimes } from 'react-icons/fa';
 
 const Sidebar = ({ isOpen, closeHandler, user }) => {
     const sidebarRef = useRef(null);
@@ -49,9 +49,7 @@ const Sidebar = ({ isOpen, closeHandler, user }) => {
             <ul className="menu-list">
                 <li onClick={() => navigateTo('/perfil-artista')}><FaUserEdit /> PERFIL DO ARTISTA</li>
                 <li onClick={() => navigateTo('/minha-conta')}><FaUser /> MINHA CONTA</li>
-                <li onClick={() => navigateTo('/favoritos')}><FaHeart /> FAVORITOS</li>
                 <li onClick={() => navigateTo('/compras')}><FaShoppingBag /> COMPRAS</li>
-                <li onClick={() => navigateTo('/notificacoes')}><FaBell /> NOTIFICAÇÕES</li>
             </ul>
 
             <div className="sidebar-footer">
