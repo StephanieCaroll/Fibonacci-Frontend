@@ -4,18 +4,24 @@ import axios from 'axios';
 import '../styles/auth.css';
 
 function Login() {
+    const history = useHistory();
+    const location = useLocation();
+    const query = new URLSearchParams(location.search);
+    const redirect = query.get('redirect');
+    const typeFromUrl = query.get('tipo');
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [backgroundImage, setBackgroundImage] = useState('');
-    
-    const history = useHistory();
-    const location = useLocation();
-    
-    const redirect = location.search ? location.search.split('=')[1] : '/perfil';
+    const [accountType, setAccountType] = useState(typeFromUrl === 'artist' ? 'artist' : 'customer');
+
+    const getRedirectPath = (selectedType = accountType) => {
+        if (redirect) return redirect;
+        return selectedType === 'artist' ? '/perfil-artista' : '/minha-conta';
+    };
 
     useEffect(() => {
-      
         const images = [
             'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=2000',
             'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?q=80&w=2000',
@@ -25,27 +31,30 @@ function Login() {
 
         const userInfo = localStorage.getItem('userInfo');
         if (userInfo) {
-            history.push(redirect);
+            history.push(redirect || (accountType === 'artist' ? '/perfil-artista' : '/minha-conta'));
         }
-    }, [history, redirect]);
+    }, [history, redirect, accountType]);
 
     const submitHandler = async (e) => {
         e.preventDefault();
         setError('');
+
         try {
             const config = {
                 headers: { 'Content-Type': 'application/json' }
             };
-            
+
             const { data } = await axios.post('http://127.0.0.1:8000/fibonacci/users/login/', {
-                username: email, 
-                password: password
+                username: email,
+                password
             }, config);
 
-            localStorage.setItem('userInfo', JSON.stringify(data));
-            
-            window.location.href = redirect;
+            localStorage.setItem('userInfo', JSON.stringify({
+                ...data,
+                accountType
+            }));
 
+            window.location.href = getRedirectPath(accountType);
         } catch (error) {
             setError(error.response && error.response.data.detail
                 ? error.response.data.detail
@@ -55,25 +64,40 @@ function Login() {
 
     return (
         <div className="auth-page">
-        
             <div className="auth-image-side" style={{ backgroundImage: `url(${backgroundImage})` }}>
                 <div className="auth-image-overlay"></div>
             </div>
-            
+
             <div className="auth-form-side">
-               
                 <div className="auth-form-wrapper">
                     <h1 className="auth-title">Acesse o seu Acervo</h1>
-                    <p className="auth-subtitle">Entre com os seus dados para gerir as suas obras e favoritos.</p>
+                    <p className="auth-subtitle">Escolha como deseja entrar na plataforma.</p>
+
+                    <div className="account-type-toggle" aria-label="Tipo de acesso">
+                        <button
+                            type="button"
+                            className={accountType === 'customer' ? 'active' : ''}
+                            onClick={() => setAccountType('customer')}
+                        >
+                            Cliente
+                        </button>
+                        <button
+                            type="button"
+                            className={accountType === 'artist' ? 'active' : ''}
+                            onClick={() => setAccountType('artist')}
+                        >
+                            Artista
+                        </button>
+                    </div>
 
                     {error && <div className="error-alert-fibonacci">{error}</div>}
 
                     <form onSubmit={submitHandler}>
                         <div className="auth-form-group">
                             <label>E-mail ou Usuário</label>
-                            <input 
-                                type="text" 
-                                className="auth-input" 
+                            <input
+                                type="text"
+                                className="auth-input"
                                 placeholder="exemplo@email.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -83,9 +107,9 @@ function Login() {
 
                         <div className="auth-form-group">
                             <label>Senha</label>
-                            <input 
-                                type="password" 
-                                className="auth-input" 
+                            <input
+                                type="password"
+                                className="auth-input"
                                 placeholder="••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -99,11 +123,13 @@ function Login() {
                             </Link>
                         </div>
 
-                        <button type="submit" className="btn-auth-submit">Entrar</button>
+                        <button type="submit" className="btn-auth-submit">
+                            {accountType === 'artist' ? 'Entrar como Artista' : 'Entrar como Cliente'}
+                        </button>
                     </form>
 
                     <p className="auth-switch-text">
-                        Ainda não possui uma conta? <Link to={redirect ? `/cadastro?redirect=${redirect}` : '/cadastro'}>Criar Conta</Link>
+                        Ainda não possui uma conta? <Link to={`/cadastro?tipo=${accountType}${redirect ? `&redirect=${redirect}` : ''}`}>Criar Conta</Link>
                     </p>
                 </div>
             </div>

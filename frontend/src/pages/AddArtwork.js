@@ -117,6 +117,7 @@ function AddArtwork() {
                                         <option value="desenho">Desenho</option>
                                         <option value="fotografia">Fotografia</option>
                                         <option value="escultura">Escultura</option>
+                                        <option value="gravura">Gravura</option>
                                         <option value="digital">Arte Digital</option>
                                         <option value="outros">Outros</option>
                                     </select>

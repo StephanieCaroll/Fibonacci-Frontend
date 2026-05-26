@@ -61,6 +61,37 @@
     margin-bottom: 15px;
 }
 
+.account-type-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 0 0 24px;
+    padding: 4px;
+    background: #F9F8F6;
+    border: 1px solid #E5E5E5;
+    border-radius: 6px;
+}
+
+.account-type-toggle button {
+    border: none;
+    background: transparent;
+    color: #5D4037;
+    border-radius: 4px;
+    padding: 12px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.account-type-toggle button.active {
+    background: #5D4037;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(93, 64, 55, 0.18);
+}
+
 .auth-form-group label {
     display: block;
     font-size: 0.7rem;

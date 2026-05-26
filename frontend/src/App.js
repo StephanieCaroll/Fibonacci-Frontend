@@ -26,6 +26,8 @@ function App() {
           <Switch>
             <Route exact path="/" component={Home} />
             <Route path="/galeria" component={Galeria} />
+            <Route path="/perfil-artista" render={() => <Profile defaultTab="obras" />} />
+            <Route path="/compras" render={() => <Profile defaultTab="compras" />} />
             <Route path="/perfil" component={Profile} />
             <Route path="/minha-conta" component={Account} />
             <Route path="/artistas" component={Artistas} />

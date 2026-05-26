@@ -1,64 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../styles/Account.css'; 
+import { useHistory } from 'react-router-dom';
+import '../styles/Account.css';
 import AddressCard from '../components/AddressCard';
 
+const API_BASE = 'http://127.0.0.1:8000/fibonacci';
+
 const Account = () => {
+    const history = useHistory();
     const [userData, setUserData] = useState(null);
     const [addresses, setAddresses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
 
     const [formData, setFormData] = useState({
-        address: '', number: '', neighborhood: '', city: '', state: '', postalCode: '', complement: ''
+        address: '',
+        number: '',
+        neighborhood: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        complement: ''
     });
 
     useEffect(() => {
         const fetchAccountData = async () => {
-            try {
-                const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-                if (!userInfo || !userInfo.token) throw new Error("Usuário não autenticado");
-                const config = { headers: { 'Authorization': `Bearer ${userInfo.token}` } };
+            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
 
-                const { data: profileData } = await axios.get('/api/users/profile/', config);
-                setUserData(profileData);
-                const { data: addressData } = await axios.get('/api/users/profile/addresses/', config);
-                
-                // Dados recebidos do servidor
-                console.log("DADOS RECEBIDOS DO SERVIDOR:", addressData);
-                setAddresses(addressData);
+            if (!userInfo) {
+                history.push('/login?redirect=/minha-conta');
+                return;
+            }
+
+            const token = userInfo.token || userInfo.access;
+            const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
+            setUserData(userInfo);
+
+            try {
+                const { data: profileData } = await axios.get(`${API_BASE}/users/profile/`, config);
+                setUserData({ ...userInfo, ...profileData, token });
+
+                try {
+                    const { data: addressData } = await axios.get(`${API_BASE}/users/profile/addresses/`, config);
+                    setAddresses(Array.isArray(addressData) ? addressData : []);
+                } catch (addressError) {
+                    console.warn('Endereços não disponíveis:', addressError);
+                    setAddresses([]);
+                }
             } catch (error) {
-                console.error("Erro ao buscar dados:", error);
+                console.error('Erro ao buscar dados:', error);
             } finally {
                 setLoading(false);
             }
         };
+
         fetchAccountData();
-    }, []);
+    }, [history]);
 
     const deleteAddress = async (id) => {
-        // Log para ver o ID sendo enviado para exclusão
-        console.log("ID do endereço sendo enviado para exclusão:", id);
+        if (!id) return;
 
-        if (window.confirm("Tem certeza que deseja excluir este endereço?")) {
+        if (window.confirm('Tem certeza que deseja excluir este endereço?')) {
             try {
                 const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-                const config = { headers: { 'Authorization': `Bearer ${userInfo.token}` } };
-                
-                // Requisição corrigida usando o id capturado (que agora é o _id)
-                await axios.delete(`/api/users/profile/addresses/delete/${id}/`, config);
-                
-                // Filtra pelo _id
-                setAddresses(addresses.filter(addr => addr._id !== id));
+                const token = userInfo.token || userInfo.access;
+                const config = { headers: { Authorization: `Bearer ${token}` } };
+
+                await axios.delete(`${API_BASE}/users/profile/addresses/delete/${id}/`, config);
+                setAddresses(addresses.filter(addr => addr._id !== id && addr.id !== id));
             } catch (error) {
-                console.error("Erro ao excluir:", error);
-                alert("Erro ao excluir endereço.");
+                console.error('Erro ao excluir:', error);
+                alert('Erro ao excluir endereço.');
             }
         }
     };
 
     const fetchAddressByCEP = async (cep) => {
         const cleanCep = cep.replace(/\D/g, '');
+
         if (cleanCep.length === 8) {
             try {
                 const { data } = await axios.get(`https://viacep.com.br/ws/${cleanCep}/json/`);
@@ -72,32 +92,35 @@ const Account = () => {
                     }));
                 }
             } catch (error) {
-                console.error("Erro ao buscar CEP:", error);
+                console.error('Erro ao buscar CEP:', error);
             }
         }
     };
 
     const handleSaveAddress = async (e) => {
         e.preventDefault();
+
         try {
             const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-            const config = { headers: { 'Authorization': `Bearer ${userInfo.token}` } };
-            
-            await axios.post('/api/users/profile/addresses/add/', formData, config);
-            
-            setAddresses([...addresses, formData]); 
-            alert("Endereço salvo com sucesso!");
+            const token = userInfo.token || userInfo.access;
+            const config = { headers: { Authorization: `Bearer ${token}` } };
+
+            const { data } = await axios.post(`${API_BASE}/users/profile/addresses/add/`, formData, config);
+
+            setAddresses([...addresses, data || formData]);
+            alert('Endereço salvo com sucesso!');
             setShowModal(false);
             setFormData({ address: '', number: '', neighborhood: '', city: '', state: '', postalCode: '', complement: '' });
         } catch (error) {
-            console.error("Erro ao salvar:", error);
-            alert("Erro ao salvar endereço.");
+            console.error('Erro ao salvar:', error);
+            alert('Erro ao salvar endereço.');
         }
     };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+
         if (name === 'postalCode') {
             fetchAddressByCEP(value);
         }
@@ -113,20 +136,21 @@ const Account = () => {
                     <div className="col-md-6">
                         <div className="account-card">
                             <h4>Dados pessoais</h4>
-                            <p><strong>Nome:</strong> {userData.name}</p>
-                            <p><strong>Email:</strong> {userData.email}</p>
+                            <p><strong>Nome:</strong> {userData.name || userData.username || 'Não informado'}</p>
+                            <p><strong>Email:</strong> {userData.email || 'Não informado'}</p>
+                            <p><strong>Tipo de conta:</strong> {userData.accountType === 'artist' ? 'Artista' : 'Cliente'}</p>
                         </div>
                     </div>
-                    
+
                     <div className="col-md-6">
                         <div className="account-card">
                             <h4>Meus endereços</h4>
                             {addresses.length > 0 ? (
                                 addresses.map((addr, index) => (
-                                    <AddressCard 
-                                        key={addr._id || index} 
-                                        address={addr} 
-                                        onDelete={() => deleteAddress(addr._id)} 
+                                    <AddressCard
+                                        key={addr._id || addr.id || index}
+                                        address={addr}
+                                        onDelete={() => deleteAddress(addr._id || addr.id)}
                                     />
                                 ))
                             ) : (
@@ -147,13 +171,13 @@ const Account = () => {
                             <h3>Novo endereço</h3>
                             <button className="close-btn" onClick={() => setShowModal(false)}>&times;</button>
                         </div>
-                        
+
                         <form onSubmit={handleSaveAddress} className="address-form">
                             <div className="form-group">
                                 <label>CEP</label>
                                 <input type="text" name="postalCode" value={formData.postalCode} placeholder="00000-000" onChange={handleChange} required />
                             </div>
-                            
+
                             <div className="form-group">
                                 <label>Endereço</label>
                                 <input type="text" name="address" value={formData.address} placeholder="Rua..." onChange={handleChange} required />

@@ -1,5 +1,3 @@
-Sidebar.css
-
 .sidebar-overlay {
     position: fixed;
     top: 0;
@@ -107,7 +105,6 @@ Sidebar.css
     background-color: #fafafa;
     padding-left: 18px; 
 }
-*/
 .sidebar-footer { 
     margin-top: 20px; 
     padding-top: 20px; 

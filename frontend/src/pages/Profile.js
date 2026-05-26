@@ -1,19 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useHistory, Link } from 'react-router-dom';
+import { useHistory, Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/profile.css';
  
 
- function Profile() {
+ function Profile({ defaultTab = 'obras' }) {
     const history = useHistory();
+    const routeLocation = useLocation();
     const fileInputAvatar = useRef(null);
     const fileInputBanner = useRef(null);
+
+    const getActiveTabFromRoute = () => {
+        const queryTab = new URLSearchParams(routeLocation.search).get('tab');
+        return queryTab === 'compras' ? 'compras' : defaultTab;
+    };
 
     const [userInfo, setUserInfo] = useState(null);
     const [userProducts, setUserProducts] = useState([]);
     const [userOrders, setUserOrders] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
-    const [activeTab, setActiveTab] = useState('obras');
+    const [activeTab, setActiveTab] = useState(getActiveTabFromRoute);
     const [countries, setCountries] = useState([]);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
@@ -53,6 +59,22 @@ import '../styles/profile.css';
             return defaultArtBanners[randomIndex];
         }
     };
+
+    const getMediaUrl = (path, fallback = defaultArtAvatars[0]) => {
+        if (!path) return fallback;
+        if (path.startsWith('http') || path.startsWith('data:') || path.startsWith('blob:')) return path;
+        return `http://127.0.0.1:8000${path.startsWith('/') ? path : `/${path}`}`;
+    };
+
+    const changeTab = (tab) => {
+        setActiveTab(tab);
+        history.replace(tab === 'compras' ? '/compras' : '/perfil-artista');
+    };
+
+    useEffect(() => {
+        const queryTab = new URLSearchParams(routeLocation.search).get('tab');
+        setActiveTab(queryTab === 'compras' ? 'compras' : defaultTab);
+    }, [routeLocation.search, defaultTab]);
 
     const saveDefaultImagesToBackend = async (user, token) => {
         try {
@@ -451,10 +473,10 @@ import '../styles/profile.css';
 
                 <div className="profile-tabs">
                     <div className="profile-tab-header">
-                        <div className={`profile-tab ${activeTab === 'obras' ? 'active' : ''}`} onClick={() => setActiveTab('obras')}>
+                        <div className={`profile-tab ${activeTab === 'obras' ? 'active' : ''}`} onClick={() => changeTab('obras')}>
                             Minhas Obras
                         </div>
-                        <div className={`profile-tab ${activeTab === 'compras' ? 'active' : ''}`} onClick={() => setActiveTab('compras')}>
+                        <div className={`profile-tab ${activeTab === 'compras' ? 'active' : ''}`} onClick={() => changeTab('compras')}>
                             Minhas Compras
                         </div>
                         <button 
@@ -485,7 +507,7 @@ import '../styles/profile.css';
                                     >
                                         <div className="art-card-image-wrapper">
                                             <img 
-                                                src={p.image} 
+                                                src={getMediaUrl(p.image)} 
                                                 alt={p.name} 
                                                 className="art-card-image"
                                                 onError={(e) => {
@@ -551,7 +573,7 @@ import '../styles/profile.css';
                                                     }}
                                                 >
                                                     <img 
-                                                        src={item.image && item.image.startsWith('http') ? item.image : `http://127.0.0.1:8000${item.image}`} 
+                                                        src={getMediaUrl(item.image)} 
                                                         alt={item.name} 
                                                         className="purchased-product-image"
                                                         onError={(e) => {

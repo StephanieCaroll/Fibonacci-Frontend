@@ -440,3 +440,33 @@
     background: #5D4037;
     color: white;
 }
+
+.category-post-card {
+    flex: 0 0 clamp(240px, 28vw, 340px);
+    height: 420px;
+    border: 0;
+    border-radius: 8px;
+    padding: 0;
+    background: #F9F8F6;
+    text-align: left;
+}
+
+.category-post-card:hover {
+    transform: translateY(-4px);
+}
+
+.category-post-overlay {
+    inset: auto 0 0 0;
+    min-height: 45%;
+    height: auto;
+    padding: 28px;
+}
+
+.category-post-overlay p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}

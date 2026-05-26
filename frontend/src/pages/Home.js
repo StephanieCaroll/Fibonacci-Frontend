@@ -21,20 +21,22 @@ function Home() {
         async function fetchProducts() {
             setLoading(true);
             try {
-                const [featRes, paintRes, sculpRes, photoRes, artistsRes] = await Promise.all([
+                const [featRes, paintRes, sculpRes, photoRes, artistsRes] = await Promise.allSettled([
                     axios.get('http://127.0.0.1:8000/api/products/featured/'),
                     axios.get('http://127.0.0.1:8000/api/products/category/Pintura/'),
                     axios.get('http://127.0.0.1:8000/api/products/category/Escultura/'),
                     axios.get('http://127.0.0.1:8000/api/products/category/Fotografia/'),
-                    axios.get('http://127.0.0.1:8000/api/artists/') 
+                    axios.get('http://127.0.0.1:8000/fibonacci/users/artists/')
                 ]);
 
+                const getData = (result) => result.status === 'fulfilled' ? result.value.data : [];
+
                 if (isMounted) {
-                    setFeatured(featRes.data);
-                    setPaintings(paintRes.data);
-                    setSculptures(sculpRes.data);
-                    setPhotography(photoRes.data);
-                    setArtists(artistsRes.data); 
+                    setFeatured(getData(featRes));
+                    setPaintings(getData(paintRes));
+                    setSculptures(getData(sculpRes));
+                    setPhotography(getData(photoRes));
+                    setArtists(getData(artistsRes));
                     setLoading(false);
                 }
             } catch (error) {

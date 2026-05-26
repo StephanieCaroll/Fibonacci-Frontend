@@ -1,27 +1,57 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import axios from 'axios';
-import { Link, useHistory, useLocation } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import '../styles/galeria.css';
 import CategorySection from '../components/CategorySection';
+import { CartContext } from '../context/CartContext';
+
+const API_BASE = 'http://127.0.0.1:8000';
+
+const normalizeText = (value = '') =>
+    String(value)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+
+const getProductCategory = (product) => {
+    if (!product) return '';
+    if (product.category_name) return product.category_name;
+    if (product.category && typeof product.category === 'object' && product.category.name) return product.category.name;
+    if (typeof product.category === 'string' && isNaN(Number(product.category))) return product.category;
+    return '';
+};
+
+const categoryMatches = (product, filter) => {
+    if (filter === 'todas') return true;
+
+    const category = normalizeText(getProductCategory(product));
+    if (filter === 'digital') return category === 'digital' || category === 'arte digital';
+    return category === filter;
+};
 
 function Galeria() {
     const history = useHistory();
     const location = useLocation();
-    
+    const { addToCart: addItemToCart } = useContext(CartContext);
+
+    const categoryFromUrl = useMemo(() => {
+        const query = new URLSearchParams(location.search);
+        return normalizeText(query.get('categoria') || 'todas') || 'todas';
+    }, [location.search]);
+
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    
     const [searchTerm, setSearchTerm] = useState('');
     const [showFilters, setShowFilters] = useState(false);
-    
-    // Filtro inicial baseado na URL
-    const query = new URLSearchParams(location.search);
-    const catFromUrl = query.get('categoria') ? query.get('categoria').toLowerCase() : 'todas';
-    
-    const [categoryFilter, setCategoryFilter] = useState(catFromUrl);
+    const [categoryFilter, setCategoryFilter] = useState(categoryFromUrl);
     const [styleFilter, setStyleFilter] = useState('todos');
     const [priceFilter, setPriceFilter] = useState(Infinity);
     const [sortOrder, setSortOrder] = useState('recent');
+
+    useEffect(() => {
+        setCategoryFilter(categoryFromUrl);
+    }, [categoryFromUrl]);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -31,15 +61,16 @@ function Galeria() {
                     headers: { Authorization: `Bearer ${userInfo.token || userInfo.access}` }
                 } : {};
 
-                const { data } = await axios.get('http://127.0.0.1:8000/fibonacci/products/', config);
+                const { data } = await axios.get(`${API_BASE}/fibonacci/products/`, config);
                 const productsData = data.products ? data.products : data;
                 setProducts(Array.isArray(productsData) ? productsData : []);
-                setLoading(false);
             } catch (error) {
-                console.error("Erro ao carregar galeria:", error);
+                console.error('Erro ao carregar galeria:', error);
+            } finally {
                 setLoading(false);
             }
         };
+
         fetchProducts();
     }, []);
 
@@ -47,63 +78,92 @@ function Galeria() {
         history.push(`/product/${id}`);
     };
 
+    const getProductId = (product) => product.id || product._id;
+
     const getCategoryDisplay = (product) => {
-        if (!product) return 'Arte';
-        
-        let cat = 'Arte';
-        if (product.category_name) {
-            cat = product.category_name;
-        } else if (product.category && typeof product.category === 'object' && product.category.name) {
-            cat = product.category.name;
-        } else if (typeof product.category === 'string' && isNaN(Number(product.category))) {
-            cat = product.category;
-        }
+        const category = getProductCategory(product) || 'Arte';
+        const normalized = normalizeText(category);
 
-        const catString = String(cat);
-        if (catString.toLowerCase() === 'digital') return 'Arte Digital';
-        return catString;
+        if (normalized === 'digital' || normalized === 'arte digital') return 'Arte Digital';
+        return String(category).charAt(0).toUpperCase() + String(category).slice(1);
     };
-
-    const addToCart = async (product) => {
-    try {
-        // Exemplo: chamando sua API ou atualizando o estado global do carrinho
-        // await axios.post('http://127.0.0.1:8000/api/cart/', { product_id: product.id, quantity: 1 });
-        
-        alert(`${product.name} adicionado ao carrinho!`);
-        // Aqui você pode disparar um evento para abrir um modal de sucesso se desejar
-    } catch (error) {
-        console.error("Erro ao adicionar ao carrinho:", error);
-    }
-};
 
     const getGenreFromDesc = (desc) => {
         if (!desc) return '';
-        const match = desc.match(/Gênero:\s*([^.]+)/i);
-        if (match && match[1]) {
-            return match[1].trim().toLowerCase();
+        const match = desc.match(/G(?:ê|e|Ãª)nero:\s*([^.]+)/i);
+        return match && match[1] ? normalizeText(match[1]) : '';
+    };
+
+    const getProductImage = (product) => {
+        if (!product?.image) return 'https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=800&q=80';
+        if (product.image.startsWith('http') || product.image.startsWith('data:') || product.image.startsWith('blob:')) return product.image;
+        return `${API_BASE}${product.image.startsWith('/') ? product.image : `/${product.image}`}`;
+    };
+
+    const selectCategory = (category) => {
+        const normalizedCategory = normalizeText(category || 'todas') || 'todas';
+        const query = new URLSearchParams(location.search);
+
+        if (normalizedCategory === 'todas') {
+            query.delete('categoria');
+        } else {
+            query.set('categoria', normalizedCategory);
         }
-        return '';
+
+        setCategoryFilter(normalizedCategory);
+        history.push({
+            pathname: '/galeria',
+            search: query.toString() ? `?${query.toString()}` : ''
+        });
+        window.scrollTo({ top: 500, behavior: 'smooth' });
+    };
+
+    const addToCart = (product, event) => {
+        event.stopPropagation();
+
+        if ((product.countInstock || 0) <= 0) {
+            alert('Esta obra está esgotada.');
+            return;
+        }
+
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+        if (!userInfo) {
+            history.push('/login?redirect=/galeria');
+            return;
+        }
+
+        addItemToCart({
+            _id: getProductId(product),
+            id: getProductId(product),
+            name: product.name,
+            brand: product.brand || 'Artista Local',
+            price: Number(product.price || 0),
+            image: product.image,
+            qty: 1,
+            countInstock: product.countInstock
+        });
+
+        alert(`${product.name} foi adicionado ao carrinho.`);
     };
 
     const filteredProducts = useMemo(() => {
         return products.filter(product => {
-            const nome = (product.name || '').toLowerCase();
-            const artista = (product.brand || '').toLowerCase();
-            const categoria = (product.category_name || '').toLowerCase(); 
-            const preco = parseFloat(product.price || 0);
-            
-            const generoExato = getGenreFromDesc(product.description);
+            const name = normalizeText(product.name || '');
+            const artist = normalizeText(product.brand || '');
+            const price = parseFloat(product.price || 0);
+            const genre = getGenreFromDesc(product.description);
+            const search = normalizeText(searchTerm);
 
-            const matchSearch = nome.includes(searchTerm.toLowerCase()) || artista.includes(searchTerm.toLowerCase());
-            const matchCat = categoryFilter === 'todas' || categoria === categoryFilter;
-            const matchEstilo = styleFilter === 'todos' || generoExato === styleFilter.toLowerCase(); 
-            const matchPrice = preco <= priceFilter;
+            const matchSearch = !search || name.includes(search) || artist.includes(search);
+            const matchCategory = categoryMatches(product, categoryFilter);
+            const matchStyle = styleFilter === 'todos' || genre === normalizeText(styleFilter);
+            const matchPrice = price <= priceFilter;
 
-            return matchSearch && matchCat && matchEstilo && matchPrice;
+            return matchSearch && matchCategory && matchStyle && matchPrice;
         }).sort((a, b) => {
-            if (sortOrder === 'price-asc') return parseFloat(a.price) - parseFloat(b.price);
-            if (sortOrder === 'price-desc') return parseFloat(b.price) - parseFloat(a.price);
-            return (b.id || b._id) - (a.id || a._id);
+            if (sortOrder === 'price-asc') return parseFloat(a.price || 0) - parseFloat(b.price || 0);
+            if (sortOrder === 'price-desc') return parseFloat(b.price || 0) - parseFloat(a.price || 0);
+            return Number(getProductId(b) || 0) - Number(getProductId(a) || 0);
         });
     }, [products, searchTerm, categoryFilter, styleFilter, priceFilter, sortOrder]);
 
@@ -118,23 +178,17 @@ function Galeria() {
             </section>
 
             <div className="container mt-5 mb-5">
-                {/* Componente integrado */}
-                <CategorySection 
-                    onSelectCategory={(catName) => {
-                        setCategoryFilter(catName);
-                        window.scrollTo({ top: 500, behavior: 'smooth' });
-                    }} 
-                />
+                <CategorySection onSelectCategory={selectCategory} />
 
                 <div className="search-wrapper-inline mb-4">
                     <div className="search-form-clean">
                         <div className="search-input-group">
                             <i className="fas fa-search search-icon"></i>
-                            <input 
-                                type="text" 
-                                placeholder="BUSCAR POR TÍTULO OU ARTISTA..." 
-                                value={searchTerm} 
-                                onChange={(e) => setSearchTerm(e.target.value)} 
+                            <input
+                                type="text"
+                                placeholder="BUSCAR POR TÍTULO OU ARTISTA..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
                         <div className="search-actions">
@@ -151,8 +205,8 @@ function Galeria() {
                             <div className="filter-col">
                                 <h6>CATEGORIA</h6>
                                 <div className="pill-group">
-                                    {['todas', 'pintura', 'desenho', 'fotografia', 'escultura', 'digital', 'outros'].map(cat => (
-                                        <button key={cat} className={`pill ${categoryFilter === cat ? 'active' : ''}`} onClick={() => setCategoryFilter(cat)}>
+                                    {['todas', 'pintura', 'desenho', 'fotografia', 'escultura', 'gravura', 'digital', 'outros'].map(cat => (
+                                        <button key={cat} className={`pill ${categoryFilter === cat ? 'active' : ''}`} onClick={() => selectCategory(cat)}>
                                             {cat === 'digital' ? 'Arte Digital' : cat.charAt(0).toUpperCase() + cat.slice(1)}
                                         </button>
                                     ))}
@@ -206,14 +260,16 @@ function Galeria() {
                 ) : (
                     <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
                         {filteredProducts.map((product) => {
+                            const productId = getProductId(product);
                             const isOutOfStock = (product.countInstock || 0) <= 0;
+
                             return (
-                                <div className="col mb-4" key={product.id || product._id}>
-                                    <div 
-                                        className={`card-obra ${isOutOfStock ? 'esgotado' : ''}`} 
-                                        onClick={() => handleCardClick(product.id || product._id)}
-                                        style={{ 
-                                            cursor: 'pointer', 
+                                <div className="col mb-4" key={productId}>
+                                    <div
+                                        className={`card-obra ${isOutOfStock ? 'esgotado' : ''}`}
+                                        onClick={() => handleCardClick(productId)}
+                                        style={{
+                                            cursor: 'pointer',
                                             filter: isOutOfStock ? 'grayscale(100%)' : 'none',
                                             opacity: isOutOfStock ? 0.7 : 1,
                                             transition: 'all 0.3s ease'
@@ -222,12 +278,12 @@ function Galeria() {
                                         <span className={`badge-categoria text-uppercase ${isOutOfStock ? 'bg-secondary' : ''}`}>
                                             {getCategoryDisplay(product)} {isOutOfStock && '- ESGOTADO'}
                                         </span>
-                                        
+
                                         <div className="img-container">
-                                            <img 
-                                                src={product.image.startsWith('http') ? product.image : `http://127.0.0.1:8000${product.image}`} 
-                                                className="obra-img" 
-                                                alt={product.name} 
+                                            <img
+                                                src={getProductImage(product)}
+                                                className="obra-img"
+                                                alt={product.name}
                                             />
                                         </div>
                                         <div className="pt-3">
@@ -237,34 +293,26 @@ function Galeria() {
                                             <small className="text-muted artista-obra">
                                                 {product.brand}
                                             </small>
-                                            <button
-                                            className="btn-add-mini"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                addToCart(product);
-                                                }}
-                                                ></button>
-                                            
-                                            {}
-                                            <div 
-                                                className="price-and-action-container" 
-                                                style={{ 
-                                                    display: 'flex', 
-                                                    justifyContent: 'space-between', 
-                                                    alignItems: 'center', 
-                                                    marginTop: '10px' 
+
+                                            <div
+                                                className="price-and-action-container"
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    marginTop: '10px'
                                                 }}
                                             >
                                                 <p className="font-weight-bold mb-0 price-text">
                                                     {isOutOfStock ? 'Indisponível' : `R$ ${product.price}`}
                                                 </p>
-                                                
+
                                                 {!isOutOfStock && (
-                                                    <button 
-                                                        className="btn-add-mini" 
-                                                        onClick={(e) => {
-                                                            e.stopPropagation(); 
-                                                        }}
+                                                    <button
+                                                        type="button"
+                                                        className="btn-add-mini"
+                                                        onClick={(event) => addToCart(product, event)}
+                                                        title="Adicionar ao carrinho"
                                                         style={{
                                                             background: '#f8f9fa',
                                                             border: '1px solid #ddd',
@@ -293,5 +341,3 @@ function Galeria() {
 }
 
 export default Galeria;
-
-
