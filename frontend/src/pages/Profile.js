@@ -374,15 +374,24 @@ import '../styles/profile.css';
 
     if (!userInfo) return null;
 
+    const isArtistAccount = userInfo.accountType === 'artist' ||
+        userInfo.is_artist === true ||
+        userInfo.isArtist === true ||
+        String(userInfo.role || userInfo.tipo || '').toLowerCase() === 'artist';
+    const isPurchasesPage = routeLocation.pathname === '/compras' || defaultTab === 'compras';
+    const showArtistActions = isArtistAccount && !isPurchasesPage;
+    const showArtistTabs = isArtistAccount && !isPurchasesPage;
+    const contentTab = showArtistTabs ? activeTab : 'compras';
+
     return (
         <div className="profile-page animate-fade-in">
-            <div className={`profile-banner-container ${isEditing ? 'editing-active' : ''}`} 
-                 onClick={() => isEditing && fileInputBanner.current.click()}>
+            <div className={`profile-banner-container ${showArtistActions && isEditing ? 'editing-active' : ''}`} 
+                 onClick={() => showArtistActions && isEditing && fileInputBanner.current.click()}>
                 <img src={getArtBanner()} alt="Banner de Arte" className="profile-banner" 
                      onError={(e) => {
                          e.target.src = defaultArtBanners[0];
                      }} />
-                {isEditing && (
+                {showArtistActions && isEditing && (
                     <div className="banner-overlay-edit">
                         <i className="fas fa-camera"></i>
                         <span>Alterar Banner</span>
@@ -392,13 +401,13 @@ import '../styles/profile.css';
             </div>
 
             <div className="profile-header-content">
-                <div className={`avatar-wrapper ${isEditing ? 'editing-active' : ''}`} 
-                     onClick={() => isEditing && fileInputAvatar.current.click()}>
+                <div className={`avatar-wrapper ${showArtistActions && isEditing ? 'editing-active' : ''}`} 
+                     onClick={() => showArtistActions && isEditing && fileInputAvatar.current.click()}>
                     <img src={getArtAvatar()} alt="Avatar de Arte" className="profile-avatar"
                          onError={(e) => {
                              e.target.src = defaultArtAvatars[0];
                          }} />
-                    {isEditing && (
+                    {showArtistActions && isEditing && (
                         <div className="avatar-overlay-edit">
                             <i className="fas fa-pencil-alt"></i>
                             <span className="edit-label">Editar</span>
@@ -408,7 +417,7 @@ import '../styles/profile.css';
                 </div>
 
                 <div className="profile-info-section">
-                    {isEditing ? (
+                    {showArtistActions && isEditing ? (
                         <div className="edit-form-inline">
                             <input 
                                 type="text" 
@@ -445,38 +454,42 @@ import '../styles/profile.css';
                     )}
                 </div>
 
-                <div className="profile-actions">
-                    {isEditing ? (
-                        <>
-                            <button className="btn-profile-primary" onClick={saveProfile} disabled={loading}>
-                                {loading ? "Salvando..." : "Salvar"}
-                            </button>
-                            <button className="btn-logout-minimal" onClick={() => {
-                                setIsEditing(false);
-                                setEditName(userInfo.name || userInfo.username || '');
-                                setEditBio(userInfo.bio || '');
-                                setEditLocation(userInfo.location || '');
-                                setTempAvatar(userInfo.avatar || null);
-                                setTempBanner(userInfo.banner || null);
-                            }}>Cancelar</button>
-                        </>
-                    ) : (
-                        <>
-                            <button className="btn-profile-primary" onClick={() => setIsEditing(true)}>Editar Perfil</button>
-                            <Link to="/adicionar-obra" className="btn-add-artwork-profile" title="Adicionar nova obra">
-                                <span className="plus-icon">+</span> Adicionar Obra
-                            </Link>
-                            <button className="btn-logout-minimal" onClick={() => { localStorage.removeItem('userInfo'); history.push('/login'); }}>Sair</button>
-                        </>
-                    )}
-                </div>
+                {showArtistActions && (
+                    <div className="profile-actions">
+                        {isEditing ? (
+                            <>
+                                <button className="btn-profile-primary" onClick={saveProfile} disabled={loading}>
+                                    {loading ? "Salvando..." : "Salvar"}
+                                </button>
+                                <button className="btn-logout-minimal" onClick={() => {
+                                    setIsEditing(false);
+                                    setEditName(userInfo.name || userInfo.username || '');
+                                    setEditBio(userInfo.bio || '');
+                                    setEditLocation(userInfo.location || '');
+                                    setTempAvatar(userInfo.avatar || null);
+                                    setTempBanner(userInfo.banner || null);
+                                }}>Cancelar</button>
+                            </>
+                        ) : (
+                            <>
+                                <button className="btn-profile-primary" onClick={() => setIsEditing(true)}>Editar Perfil</button>
+                                <Link to="/adicionar-obra" className="btn-add-artwork-profile" title="Adicionar nova obra">
+                                    <span className="plus-icon">+</span> Adicionar Obra
+                                </Link>
+                                <button className="btn-logout-minimal" onClick={() => { localStorage.removeItem('userInfo'); history.push('/login'); }}>Sair</button>
+                            </>
+                        )}
+                    </div>
+                )}
 
                 <div className="profile-tabs">
                     <div className="profile-tab-header">
-                        <div className={`profile-tab ${activeTab === 'obras' ? 'active' : ''}`} onClick={() => changeTab('obras')}>
-                            Minhas Obras
-                        </div>
-                        <div className={`profile-tab ${activeTab === 'compras' ? 'active' : ''}`} onClick={() => changeTab('compras')}>
+                        {showArtistTabs && (
+                            <div className={`profile-tab ${contentTab === 'obras' ? 'active' : ''}`} onClick={() => changeTab('obras')}>
+                                Minhas Obras
+                            </div>
+                        )}
+                        <div className={`profile-tab ${contentTab === 'compras' ? 'active' : ''}`} onClick={() => changeTab('compras')}>
                             Minhas Compras
                         </div>
                         <button 
@@ -495,7 +508,7 @@ import '../styles/profile.css';
                 </div>
 
                 <div className="profile-content-body">
-                    {activeTab === 'obras' ? (
+                    {contentTab === 'obras' ? (
                         <div className="profile-grid">
                             {userProducts.length > 0 ? userProducts.map(p => {
                                 const productId = p.id || p._id;

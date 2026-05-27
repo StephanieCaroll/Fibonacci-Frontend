@@ -12,6 +12,8 @@ const Account = () => {
     const [addresses, setAddresses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [savingProfile, setSavingProfile] = useState(false);
 
     const [formData, setFormData] = useState({
         address: '',
@@ -22,6 +24,21 @@ const Account = () => {
         postalCode: '',
         complement: ''
     });
+    const [profileForm, setProfileForm] = useState({
+        name: '',
+        email: '',
+        location: '',
+        bio: ''
+    });
+
+    const hydrateProfileForm = (data) => {
+        setProfileForm({
+            name: data.name || data.username || '',
+            email: data.email || '',
+            location: data.location || '',
+            bio: data.bio || ''
+        });
+    };
 
     useEffect(() => {
         const fetchAccountData = async () => {
@@ -36,16 +53,19 @@ const Account = () => {
             const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
             setUserData(userInfo);
+            hydrateProfileForm(userInfo);
 
             try {
                 const { data: profileData } = await axios.get(`${API_BASE}/users/profile/`, config);
-                setUserData({ ...userInfo, ...profileData, token });
+                const mergedProfile = { ...userInfo, ...profileData, token };
+                setUserData(mergedProfile);
+                hydrateProfileForm(mergedProfile);
 
                 try {
                     const { data: addressData } = await axios.get(`${API_BASE}/users/profile/addresses/`, config);
                     setAddresses(Array.isArray(addressData) ? addressData : []);
                 } catch (addressError) {
-                    console.warn('Endereços não disponíveis:', addressError);
+                    console.warn('Enderecos nao disponiveis:', addressError);
                     setAddresses([]);
                 }
             } catch (error) {
@@ -61,7 +81,7 @@ const Account = () => {
     const deleteAddress = async (id) => {
         if (!id) return;
 
-        if (window.confirm('Tem certeza que deseja excluir este endereço?')) {
+        if (window.confirm('Tem certeza que deseja excluir este endereco?')) {
             try {
                 const userInfo = JSON.parse(localStorage.getItem('userInfo'));
                 const token = userInfo.token || userInfo.access;
@@ -71,7 +91,7 @@ const Account = () => {
                 setAddresses(addresses.filter(addr => addr._id !== id && addr.id !== id));
             } catch (error) {
                 console.error('Erro ao excluir:', error);
-                alert('Erro ao excluir endereço.');
+                alert('Erro ao excluir endereco.');
             }
         }
     };
@@ -108,12 +128,12 @@ const Account = () => {
             const { data } = await axios.post(`${API_BASE}/users/profile/addresses/add/`, formData, config);
 
             setAddresses([...addresses, data || formData]);
-            alert('Endereço salvo com sucesso!');
+            alert('Endereco salvo com sucesso!');
             setShowModal(false);
             setFormData({ address: '', number: '', neighborhood: '', city: '', state: '', postalCode: '', complement: '' });
         } catch (error) {
             console.error('Erro ao salvar:', error);
-            alert('Erro ao salvar endereço.');
+            alert('Erro ao salvar endereco.');
         }
     };
 
@@ -126,6 +146,52 @@ const Account = () => {
         }
     };
 
+    const handleProfileChange = (e) => {
+        const { name, value } = e.target;
+        setProfileForm({ ...profileForm, [name]: value });
+    };
+
+    const saveProfileData = async () => {
+        setSavingProfile(true);
+
+        try {
+            const storedUser = JSON.parse(localStorage.getItem('userInfo'));
+            const token = storedUser.token || storedUser.access;
+            const form = new FormData();
+
+            form.append('name', profileForm.name);
+            form.append('email', profileForm.email);
+            form.append('location', profileForm.location);
+            form.append('bio', profileForm.bio);
+
+            const { data } = await axios.put(`${API_BASE}/users/profile/update/`, form, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            const updatedUser = {
+                ...storedUser,
+                ...userData,
+                ...data,
+                ...profileForm,
+                token,
+                accountType: storedUser.accountType || userData.accountType
+            };
+
+            localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+            setUserData(updatedUser);
+            hydrateProfileForm(updatedUser);
+            setIsEditingProfile(false);
+        } catch (error) {
+            console.error('Erro ao atualizar perfil:', error);
+            alert('Erro ao atualizar perfil.');
+        } finally {
+            setSavingProfile(false);
+        }
+    };
+
     if (loading) return <div className="container mt-5">Carregando...</div>;
 
     return (
@@ -135,16 +201,56 @@ const Account = () => {
                 <div className="row">
                     <div className="col-md-6">
                         <div className="account-card">
-                            <h4>Dados pessoais</h4>
-                            <p><strong>Nome:</strong> {userData.name || userData.username || 'Não informado'}</p>
-                            <p><strong>Email:</strong> {userData.email || 'Não informado'}</p>
-                            <p><strong>Tipo de conta:</strong> {userData.accountType === 'artist' ? 'Artista' : 'Cliente'}</p>
+                            <div className="account-card-heading">
+                                <h4>Dados pessoais</h4>
+                                <button
+                                    type="button"
+                                    className="account-edit-btn"
+                                    onClick={() => {
+                                        hydrateProfileForm(userData);
+                                        setIsEditingProfile(!isEditingProfile);
+                                    }}
+                                >
+                                    {isEditingProfile ? 'Cancelar' : 'Editar perfil'}
+                                </button>
+                            </div>
+
+                            {isEditingProfile ? (
+                                <div className="account-profile-form">
+                                    <label>
+                                        Nome
+                                        <input name="name" value={profileForm.name} onChange={handleProfileChange} />
+                                    </label>
+                                    <label>
+                                        E-mail
+                                        <input name="email" type="email" value={profileForm.email} onChange={handleProfileChange} />
+                                    </label>
+                                    <label>
+                                        Localizacao
+                                        <input name="location" value={profileForm.location} onChange={handleProfileChange} />
+                                    </label>
+                                    <label>
+                                        Bio
+                                        <textarea name="bio" value={profileForm.bio} onChange={handleProfileChange} rows="4" />
+                                    </label>
+                                    <button className="account-save-btn" onClick={saveProfileData} disabled={savingProfile}>
+                                        {savingProfile ? 'Salvando...' : 'Salvar alteracoes'}
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    <p><strong>Nome:</strong> {userData.name || userData.username || 'Nao informado'}</p>
+                                    <p><strong>Email:</strong> {userData.email || 'Nao informado'}</p>
+                                    <p><strong>Localizacao:</strong> {userData.location || 'Nao informado'}</p>
+                                    <p><strong>Tipo de conta:</strong> {userData.accountType === 'artist' ? 'Artista' : 'Cliente'}</p>
+                                </>
+                            )}
                         </div>
                     </div>
 
                     <div className="col-md-6">
                         <div className="account-card">
-                            <h4>Meus endereços</h4>
+                            <h4>Meus enderecos</h4>
                             {addresses.length > 0 ? (
                                 addresses.map((addr, index) => (
                                     <AddressCard
@@ -154,10 +260,10 @@ const Account = () => {
                                     />
                                 ))
                             ) : (
-                                <p>Você ainda não tem endereços cadastrados.</p>
+                                <p>Voce ainda nao tem enderecos cadastrados.</p>
                             )}
                             <button className="add-address-btn" onClick={() => setShowModal(true)}>
-                                + Adicionar endereço
+                                + Adicionar endereco
                             </button>
                         </div>
                     </div>
@@ -168,7 +274,7 @@ const Account = () => {
                 <div className="modal-overlay">
                     <div className="modal-content-boobam">
                         <div className="modal-header">
-                            <h3>Novo endereço</h3>
+                            <h3>Novo endereco</h3>
                             <button className="close-btn" onClick={() => setShowModal(false)}>&times;</button>
                         </div>
 
@@ -179,13 +285,13 @@ const Account = () => {
                             </div>
 
                             <div className="form-group">
-                                <label>Endereço</label>
+                                <label>Endereco</label>
                                 <input type="text" name="address" value={formData.address} placeholder="Rua..." onChange={handleChange} required />
                             </div>
 
                             <div className="form-row">
                                 <div className="form-group col-6">
-                                    <label>Número</label>
+                                    <label>Numero</label>
                                     <input type="text" name="number" value={formData.number} placeholder="123" onChange={handleChange} required />
                                 </div>
                                 <div className="form-group col-6">

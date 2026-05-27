@@ -9,6 +9,84 @@
     height: 100%;
 }
 
+.account-card-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.account-card-heading h4 {
+    margin: 0;
+}
+
+.account-edit-btn {
+    background: transparent;
+    border: 1px solid #60432e;
+    color: #60432e;
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+.account-edit-btn:hover {
+    background: #60432e;
+    color: #ffffff;
+}
+
+.account-profile-form {
+    display: grid;
+    gap: 14px;
+}
+
+.account-profile-form label {
+    color: #60432e;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.account-profile-form input,
+.account-profile-form textarea {
+    width: 100%;
+    margin-top: 6px;
+    padding: 12px;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #1a1a1a;
+    background: #ffffff;
+}
+
+.account-profile-form input:focus,
+.account-profile-form textarea:focus {
+    outline: none;
+    border-color: #60432e;
+}
+
+.account-save-btn {
+    background: #60432e;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 12px 18px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+.account-save-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 
 .profile-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }

@@ -6,6 +6,10 @@ import { FaUser, FaUserEdit, FaShoppingBag, FaSignOutAlt, FaTimes } from 'react-
 const Sidebar = ({ isOpen, closeHandler, user }) => {
     const sidebarRef = useRef(null);
     const history = useHistory();
+    const isArtistAccount = user?.accountType === 'artist' ||
+        user?.is_artist === true ||
+        user?.isArtist === true ||
+        String(user?.role || user?.tipo || '').toLowerCase() === 'artist';
 
     // Lógica para fechar ao clicar fora
     useEffect(() => {
@@ -47,7 +51,9 @@ const Sidebar = ({ isOpen, closeHandler, user }) => {
             </div>
 
             <ul className="menu-list">
-                <li onClick={() => navigateTo('/perfil-artista')}><FaUserEdit /> PERFIL DO ARTISTA</li>
+                {isArtistAccount && (
+                    <li onClick={() => navigateTo('/perfil-artista')}><FaUserEdit /> PERFIL DO ARTISTA</li>
+                )}
                 <li onClick={() => navigateTo('/minha-conta')}><FaUser /> MINHA CONTA</li>
                 <li onClick={() => navigateTo('/compras')}><FaShoppingBag /> COMPRAS</li>
             </ul>
